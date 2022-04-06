@@ -1,0 +1,127 @@
+#--------------------------------------------------------------------------
+# Dataset component parameters
+/data:
+  ros__parameters:
+    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
+    run_time: 86.0
+    # check x_vel_run_time has the same value for both de Dataset and the localslam component
+    x_vel_run_time: 1.0
+#--------------------------------------------------------------------------
+# Local slam component parameters    
+/lslam:
+  ros__parameters:
+    Data_origin: dataset
+    # check x_vel_run_time has the same value for both de Dataset and the localslam component
+    x_vel_run_time: 1.0
+    Robot_state_size: 13    
+    Prediction_model: noise_driven
+    # Maximun frequency output of robot state in Hz. (Max_freq_output must be an integer > 10)
+    Max_freq_output: 33
+    Attitude_update: true
+    Altitude_update: true
+    Speed_update: true
+    Visual_update: true
+    GPS_update: false
+    # Robot initial conditions
+    Robot_init_x: 0.0
+    Robot_init_y: 0.0
+    Robot_init_z: 0.0
+    Robot_init_roll: 0.0
+    Robot_init_pitch: 0.0
+    Robot_init_yaw: 0.0
+    # Speed_sensor_frame to robot_frame rotation matrix  colum-major
+    Rot_spd_2_r: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+    # range sensor
+    Range_sensor_offset: 0.0 
+    Range_sensor_max_range_pattern: 6.0
+    Range_sensor_max_r_max: 1.75
+    Range_sensor_max_range_operation: 6.0       
+    # Prediction parameters
+    Sigma_w: 0.1    
+    Sigma_a: 1.00   
+    Tau_r: 1.0
+    Tau_p: 100000.0
+    # Updates sensor uncertanty parameters
+    Sigma_att_update: 0.001
+    Sigma_spd_update: 0.005
+    Sigma_alt_update: 0.05
+    Sigma_cam_uv: 10.0
+    Sigma_cam_uv_anchors: 10.0
+    Sigma_cam_initial_depth_range: 0.1
+    Sigma_cam_initial_depth_WOrange: 0.2
+    # -1 ->  change altitud (h) to down coordinates
+    Alt_h_2_d: -1
+    # ------ monocular camera parameters ----------------------------
+    Mono_cam_frame_period: 0.033333
+    # Mono_cam_2_robot_axis_a z->y->x intrinisic axis rotations for defining the orientation of the camera frame with respect to robot frame
+    Mono_cam_2_robot_axis_x: 0.1
+    Mono_cam_2_robot_axis_y: 0.0
+    Mono_cam_2_robot_axis_z: 1.5707963268
+    # Mono_cam_2_robot vector position (expresed in the robot frame)
+    Mono_cam_2_robot_pos_x: 0.1
+    Mono_cam_2_robot_pos_y: 0.0
+    Mono_cam_2_robot_pos_z: 0.0
+    # Monocular camera intrinsic parameters
+    Mono_cam_img_rows: 240
+    Mono_cam_img_cols: 320
+    Mono_cam_distortions: [0.02921, -0.00504, 0.00297, -0.00843, 0.00000]
+    Mono_cam_cc_u: 156.24435
+    Mono_cam_cc_v: 117.04562
+    Mono_cam_fc_u: 206.34225
+    Mono_cam_fc_v: 268.65192
+    Mono_cam_alpha_c: 0.0
+    # visual detection and tracking parameters    
+    Images_number_candidate_points_detected: 20
+    Images_minimun_distance_new_points: 20
+    Images_half_patch_size_when_initialized: 20
+    Images_half_patch_size_when_matching: 6
+    Images_max_innov_pixels: 50
+    # For deleting feats and anchors
+    Visual_delete_Maximun_number_feats_allowed: 200
+    Visual_delete_Maximun_number_anchors_allowed: 200
+    Visual_delete_minimun_feats_in_state_before_delete: 20    
+    Visual_delete_minimun_RatioMatched: 0.3    
+    # visual update parameters
+    Visual_update_use_1RANSAC_for_validation: true
+    Visual_update_attitude_update: false
+    Visual_update_min_vel_for_update_feats: 0.02
+    Visual_update_use_anchors: true
+    # uncertainty_depth_anchor_init: the smaller value the more the uncertanty has to converged to initialize the anchor
+    Visual_update_uncertainty_depth_anchor_init: 0.08
+    # parameters for selecting Keyframes
+    Select_KeyFrames_min_n_frames_between_kf: 5
+    Select_KeyFrames_min_n_matches: 5
+    Select_KeyFrames_min_ratio_distance_depth: 0.15    
+#--------------------------------------------------------------------------
+# Plot component parameters         
+/plot:
+  ros__parameters:
+    Viewer_width: 1000
+    Viewer_height: 600
+    Cam_distance: 4.0
+    Cam_pos_init_x: 0.5
+    Cam_pos_init_y: -1.0
+    Cam_pos_init_z: 0.0
+    Cam_zoom_delta: 1.0
+    Cam_move_delta: 0.5
+    Draw_local_slam_trajectory: true
+    # If PLot_actual_cam_pos = true, plots the camera using the position and rotation provided by the local slam component
+    Plot_actual_cam_pos: true
+    Robot_cam_pos_x: 0.1
+    Robot_cam_pos_y: 0.0
+    Robot_cam_pos_z: 0.05
+    # z->y->x intrinisic axis rotations for defining the orientation of the camera frame with respect to robot frame
+    Robot_cam_axis_x: 0.1
+    Robot_cam_axis_y: 0.0
+    Robot_cam_axis_z: 1.5707963268
+#--------------------------------------------------------------------------
+# Global slam component parameters     
+/gslam:
+  ros__parameters:
+    Tmp: 1
+    
+
+
+    
+
+    
