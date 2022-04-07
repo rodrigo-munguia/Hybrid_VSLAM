@@ -5,7 +5,7 @@ Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
 R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210. https://doi.org/10.3390/s22010210
 
-![](figures/hvslam_f1.png | width=500)
+![](figures/hvslam_f1.png)
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
