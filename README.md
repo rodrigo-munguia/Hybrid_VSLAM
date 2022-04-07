@@ -1,5 +1,5 @@
 # Hybrid_VSLAM
-<<<<<<< HEAD
+
 Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
 R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210.
@@ -16,6 +16,3 @@ Tested in: Ubuntu 20.04
 
 3.- OpenCV with extra modules installed (opencv_contrib) (tested with OpenCV version 4.2.0), https://opencv.org/
     Particularly, SFM and VIZ modules are required. VIZ requires VTK support (tested with version 6.3.0).    
-=======
-Ros2 implementation of the visual-based SLAM approach described in the paper "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping"
->>>>>>> 01c34b9ee42126c32c5feda17aed9e4f80e2a2e2
