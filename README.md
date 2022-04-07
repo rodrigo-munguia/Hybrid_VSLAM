@@ -55,7 +55,7 @@ foo@bar:~/home/Hybrid_VLSAM$ ros2 launch launch/slam.launch.py
 ```
 foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
-7.- Run the keyboard interface component:
+7.- Run the keyboard interface node:
 ```
 foo@bar:~/home/Hybrid_VLSAM$ ros2 run keyboard keyboard_node
 ```
