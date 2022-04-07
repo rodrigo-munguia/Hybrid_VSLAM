@@ -21,11 +21,11 @@ IMPORTANT: Note that this software is under development and several functionalit
 
 1.- Use colcon for compiling the project  (in the root project folder):  
 ```
-foo@bar:~/Hybrid_VLSAM$ colcon build
+foo@bar:~/home/Hybrid_VLSAM$ colcon build
 ```
 2.- Extract the sample dataset included in folder /Dataset_sample:
 ```
-foo@bar:~/Hybrid_VLSAM/Dataset_sample$ tar -xf 2022-1-22-16-6.tar.xz
+foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ tar -xf 2022-1-22-16-6.tar.xz
  ```
  3.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
  ```
@@ -33,19 +33,19 @@ foo@bar:~/Hybrid_VLSAM/Dataset_sample$ tar -xf 2022-1-22-16-6.tar.xz
 ``` 
 4.-  In the root project folder open a terminal and source the overlay:
 ```
-foo@bar:~/Hybrid_VLSAM$ . install/setup.bash
+foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
 5.- In the same terminal run the Hybrid SLAM using the launch file "launch/slam.launch.py". At this point, a graphical interface must be opened.
 ```
-foo@bar:~/Hybrid_VLSAM$ ros2 launch launch/slam.launch.py
+foo@bar:~/home/Hybrid_VLSAM$ ros2 launch launch/slam.launch.py
 ```
 6.- In the root project folder open a second terminal and source the overlay: 
 ```
-foo@bar:~/Hybrid_VLSAM$ . install/setup.bash
+foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
 7.- Run the keyboard interface component:
 ```
-foo@bar:~/Hybrid_VLSAM$ ros2 run keyboard keyboard_node
+foo@bar:~/home/Hybrid_VLSAM$ ros2 run keyboard keyboard_node
 ```
 At this point, the following menu must appear in the console:
 ```
