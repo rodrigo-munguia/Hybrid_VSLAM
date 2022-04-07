@@ -3,7 +3,7 @@
 
 Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
-R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210.
+R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210. https://doi.org/10.3390/s22010210
 
 IMPORTANT: Note that this software is under development and several functionalities have been not implemented yet.
 
