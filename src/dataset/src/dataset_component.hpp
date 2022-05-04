@@ -60,7 +60,7 @@ private:
   
   // declare Services
   rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv1_;   
-  // edclare clients
+  // declare clients
   rclcpp::Client<interfaces::srv::SimpleServ>::SharedPtr client_ekf_run_;
   
   // For ros2 message to opencv MAT convertion 

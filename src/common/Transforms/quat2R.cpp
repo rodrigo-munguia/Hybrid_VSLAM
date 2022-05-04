@@ -22,7 +22,7 @@
 //
 //
 
-void quat2R(double b[4], double Rn2b[9])
+void quat2R_col_major(double b[4], double Rn2b[9])
 {
   double scale;
   double absxk;

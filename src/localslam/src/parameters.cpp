@@ -72,6 +72,10 @@ void EKFslam::setParameters()
    this->declare_parameter<int>("Select_KeyFrames_min_n_frames_between_kf",5);
    this->declare_parameter<int>("Select_KeyFrames_min_n_matches",5);
    this->declare_parameter<double>("Select_KeyFrames_min_ratio_distance_depth",0.15);
+   this->declare_parameter<bool>("GS_xy_update",true);
+   this->declare_parameter<bool>("GS_z_update",true);
+   this->declare_parameter<double>("GS_xy_update_max_delta",0.1);
+   this->declare_parameter<double>("GS_z_update_max_delta",0.1);
    
       
   
@@ -146,7 +150,11 @@ void EKFslam::setParameters()
    this->get_parameter("Select_KeyFrames_min_n_frames_between_kf",PAR.Select_KeyFrames_min_n_frames_between_kf);
    this->get_parameter("Select_KeyFrames_min_n_matches",PAR.Select_KeyFrames_min_n_matches);
    this->get_parameter("Select_KeyFrames_min_ratio_distance_depth",PAR.Select_KeyFrames_min_ratio_distance_depth);
- 
+   this->get_parameter("GS_xy_update",PAR.GS_xy_update);
+   this->get_parameter("GS_z_update",PAR.GS_z_update);
+   this->get_parameter("GS_xy_update_max_delta",PAR.GS_xy_update_max_delta);
+   this->get_parameter("GS_z_update_max_delta",PAR.GS_z_update_max_delta);
+
        
 
 }

@@ -90,7 +90,7 @@ void EKF::Speed_Update2(SPD &spd)
     std::vector<double> quat;
     quat = arma::conv_to<vec_t>::from(x.subvec(0,3)); // convert from armadillo vector to c++ vector
     double Rn2r_a[9];
-    quat2R(&quat[0],Rn2r_a);
+    quat2R_col_major(&quat[0],Rn2r_a);
     arma::mat Rn2r(Rn2r_a,3,3); // convert from arrat to armadillo 
     arma::mat::fixed<3,3>  Rr2n = Rn2r.t();
     arma::vec::fixed<3> s_c = x.subvec(10,12); // (velocity) speed vector in navigation frame     

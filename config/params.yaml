@@ -5,14 +5,14 @@
     Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
     run_time: 86.0
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
-    x_vel_run_time: 1.0
+    x_vel_run_time: 1.5
 #--------------------------------------------------------------------------
 # Local slam component parameters    
 /lslam:
   ros__parameters:
     Data_origin: dataset
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
-    x_vel_run_time: 1.0
+    x_vel_run_time: 1.5
     Robot_state_size: 13    
     Prediction_model: noise_driven
     # Maximun frequency output of robot state in Hz. (Max_freq_output must be an integer > 10)
@@ -77,8 +77,8 @@
     Images_half_patch_size_when_matching: 6
     Images_max_innov_pixels: 50
     # For deleting feats and anchors
-    Visual_delete_Maximun_number_feats_allowed: 200
-    Visual_delete_Maximun_number_anchors_allowed: 200
+    Visual_delete_Maximun_number_feats_allowed: 50
+    Visual_delete_Maximun_number_anchors_allowed: 50
     Visual_delete_minimun_feats_in_state_before_delete: 20    
     Visual_delete_minimun_RatioMatched: 0.3    
     # visual update parameters
@@ -91,7 +91,12 @@
     # parameters for selecting Keyframes
     Select_KeyFrames_min_n_frames_between_kf: 5
     Select_KeyFrames_min_n_matches: 5
-    Select_KeyFrames_min_ratio_distance_depth: 0.15    
+    Select_KeyFrames_min_ratio_distance_depth: 0.15
+    # Position update from global slam
+    GS_xy_update: true
+    GS_z_update: true
+    GS_xy_update_max_delta: 0.1
+    GS_z_update_max_delta: 0.1    
 #--------------------------------------------------------------------------
 # Plot component parameters         
 /plot:
@@ -118,7 +123,38 @@
 # Global slam component parameters     
 /gslam:
   ros__parameters:
-    Tmp: 1
+    # Monocular camera intrinsic parameters
+    Mono_cam_img_rows: 240
+    Mono_cam_img_cols: 320
+    Mono_cam_distortions: [0.02921, -0.00504, 0.00297, -0.00843, 0.00000]
+    Mono_cam_cc_u: 156.24435
+    Mono_cam_cc_v: 117.04562
+    Mono_cam_fc_u: 206.34225
+    Mono_cam_fc_v: 268.65192
+    Mono_cam_alpha_c: 0.0
+    # Initialization of global map points (anchors)
+    # A high value of "Init_number_candidate_points_per_kf" can cause a malloc crash
+    Init_use_anms_for_select_strong_points: true     
+    Init_number_candidate_points_per_kf: 1000
+    Init_min_distance_to_previous_mapped_features: 5
+    Init_min_depth_to_consider: .2
+    # visual match
+    VM_max_inov_error: 30
+    # Visibility graph
+    VG_img_search_margin: 15
+    # Delele points
+    Delete_min_kf_matched_for_keep_anchor: 3
+    # Bundle Adjusment
+    BA_max_n_kf_optimized: 20
+    BA_sigma_uv: 1.0
+    BA_sigma_kf_att: 0.001
+    BA_sigma_kf_xy: 0.1
+    BA_sigma_kf_z: 0.2
+    BA_sigma_kf_pt: 0.1
+    BA_update_kf_pos: true
+    BA_update_kf_att: true
+    BA_update_map: true
+    
     
 
 

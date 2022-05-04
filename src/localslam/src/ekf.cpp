@@ -91,10 +91,10 @@ void EKF::init_euler_system_statet(DATA &dat)
   NewKF_available = false;
   NewRobotState_available = false;
 
-  //std::cout << cv::getBuildInformation() << std::endl;
+ 
  
 }
-
+//----------------------------------------------------------
 void EKF::init_quat_system_state(DATA &dat)
 { 
   x.resize(PAR.Robot_state_size);
@@ -291,9 +291,9 @@ void EKF::ekf_step(DATA &dat)
                auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(ct_f - ct_i);
                double comp_time_per_frame = elapsed.count() * 1e-9;
                
-               // cout << "computation time per frame(s): " << comp_time_per_frame << endl;
-               // cout << "total exec time(s): " << total_exec_time << " total comp time(s): " << total_comp_time << endl;
-               // cout << n_o << endl;
+              // cout << "computation time per frame(s): " << comp_time_per_frame << endl;
+              // cout << "total exec time(s): " << total_exec_time << " total comp time(s): " << total_comp_time << endl;
+              // cout << n_o << endl;
             }
 
             if(dat.data_type == "alt")
@@ -343,6 +343,52 @@ void EKF::ekf_step(DATA &dat)
                NewRobotState_available = true;
             }
 
+
+}
+
+//----------------------------------------------------
+void EKF::Update_pos_with_delta(arma::vec::fixed<3> delta_pos)
+{
+  //cout << "delta_pos update request: " << delta_pos << endl;
+  double innov_xy = sqrt(pow(delta_pos[0],2) + pow(delta_pos[1],2)); 
+  
+  // update robot position
+  if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
+  {
+    x[7] = x[7] + delta_pos[0];
+    x[8] = x[8] + delta_pos[1];
+  }
+  if(PAR.GS_z_update == true && delta_pos[2] < PAR.GS_z_update_max_delta)
+  {  
+    x[9] = x[9] + delta_pos[2];
+  }  
+
+   for(int i = 0; i< FeatsDATA.size();i++ )
+    {
+      int idx_i = FeatsDATA[i].idx_i_state;
+      if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
+      {
+        x[idx_i] = x[idx_i] + delta_pos[0];
+        x[idx_i+1] = x[idx_i+1] + delta_pos[1];
+      }
+      if(PAR.GS_z_update == true && delta_pos[2] < PAR.GS_z_update_max_delta)
+      {   
+        x[idx_i+2] = x[idx_i+2] + delta_pos[2];
+      }  
+    }
+
+    for(int i = 0; i< AnchorsDATA.size();i++)
+    { 
+      if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
+      {
+        AnchorsDATA[i].AnchorState[0]  =  AnchorsDATA[i].AnchorState[0] + delta_pos[0];
+        AnchorsDATA[i].AnchorState[1]  =  AnchorsDATA[i].AnchorState[1] + delta_pos[1];
+      }
+      if(PAR.GS_z_update == true && delta_pos[2] < PAR.GS_z_update_max_delta)
+      { 
+        AnchorsDATA[i].AnchorState[2]  =  AnchorsDATA[i].AnchorState[2] + delta_pos[2];
+      }  
+    }     
 
 }
 

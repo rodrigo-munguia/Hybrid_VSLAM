@@ -17,7 +17,7 @@
 //#include "quat2R_types.h"
 
 // Function Declarations
-extern void quat2R(double b[4], double Rn2b[9]);
+extern void quat2R_col_major(double b[4], double Rn2b[9]);
 
 extern void quat2R_row_major(double b[4], double Rn2b[9]);
 

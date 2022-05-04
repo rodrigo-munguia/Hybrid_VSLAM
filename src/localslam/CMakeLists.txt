@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 project(localslam)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -g -fpermissive)
+  add_compile_options(-Wall -Wextra -Wpedantic -g -fpermissive -DARMA_DONT_USE_WRAPPER -DARMA_USE_BLAS -DARMA_USE_LAPACK)
+ # add_compile_options(-Wall -Wextra -Wpedantic -g -fpermissive )
 endif()
 
 # find dependencies
@@ -22,7 +23,11 @@ find_package(tf2_ros REQUIRED)
 # find_package(<dependency> REQUIRED)
 find_package( OpenCV REQUIRED )
 find_package(Threads REQUIRED)
-find_package(Armadillo REQUIRED)
+find_package(BLAS REQUIRED)
+find_package(LAPACK REQUIRED)
+#find_package(Armadillo REQUIRED)
+
+
 
 include_directories(include)
 
@@ -75,7 +80,9 @@ ament_target_dependencies(localslam_component
   "cv_bridge"
   "sensor_msgs"
   "Threads"
-  "geometry_msgs")
+  "geometry_msgs"
+  "BLAS"
+  "LAPACK")
 rclcpp_components_register_nodes(localslam_component "localslam::EKFslam")
 set(node_plugins "${node_plugins}localslam::EKFslam;$<TARGET_FILE:localslam_component>\n")
 

@@ -79,7 +79,8 @@ void EKF::prediction_euler_noise_driven(double delta_t)
 
    arma::mat::fixed<13,13> Jfx;
    arma::mat::fixed<13,6> Jfu;
-
+   
+   //cout << x << endl;
    Jac_euler_noise_driven_model(x, delta_t, Tau_r, Tau_p, Jfx, Jfu);
 
     arma::mat U;
@@ -87,7 +88,10 @@ void EKF::prediction_euler_noise_driven(double delta_t)
     U(arma::span(0,2),arma::span(0,2)) = arma::eye(3,3)*pow(sigma_w*delta_t,2);
     U(arma::span(3,5),arma::span(3,5)) = arma::eye(3,3)*pow(sigma_a*delta_t,2);
 
-    
+    //cout << Jfx << endl;
+    //    cout << Jfu << endl;
+    //    cout << P << endl;
+
 
     int x_len = x.size();
     if(x_len > PAR.Robot_state_size)
@@ -101,8 +105,10 @@ void EKF::prediction_euler_noise_driven(double delta_t)
     }
     else
     {
+        
         P(arma::span(0,12),arma::span(0,12)) = Jfx*P(arma::span(0,12),arma::span(0,12))*Jfx.t() + Jfu*U*Jfu.t();
         //P(arma::span(0,12),arma::span(0,12)) = Jfx*P(arma::span(0,12),arma::span(0,12))*Jfx.t() + U;
+        int q = 10;
     }
 
     

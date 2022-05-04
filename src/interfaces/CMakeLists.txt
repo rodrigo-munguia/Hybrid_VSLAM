@@ -28,7 +28,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Lslam.msg"
   "msg/Kf.msg"
   "msg/Robotstate.msg"
+  "msg/Gmap.msg"
   "srv/SimpleServ.srv"
+  "srv/LSposUpdate.srv"
   DEPENDENCIES sensor_msgs  
 )
 

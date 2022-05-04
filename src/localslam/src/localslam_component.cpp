@@ -31,6 +31,7 @@
 #include "interfaces/msg/spd.hpp"
 #include "interfaces/msg/lslam.hpp"
 #include "interfaces/msg/kf.hpp"
+#include "interfaces/srv/l_spos_update.hpp"
 #include "geometry_msgs/msg/point.h"
 #include "ekf.hpp"
 //#include <tf2/LinearMath/Matrix3x3.h>
@@ -69,6 +70,7 @@ EKFslam::EKFslam(const rclcpp::NodeOptions & options)
   
   // Set services
   srv_ekf_run_ = this->create_service<interfaces::srv::SimpleServ>("ekf_run_service",std::bind(&EKFslam::Handle_ekf_run_service, this,_1,_2));
+  srv_pos_update_ = this->create_service<interfaces::srv::LSposUpdate>("local_slam_pos_update",std::bind(&EKFslam::Handle_pos_update_service, this,_1,_2)  );
 
   ekf_thread_loop_run = true; // main ekf  loop flag 
   ekf_loop_ = thread(&EKFslam::EKF_LOOP,this);
@@ -86,6 +88,11 @@ EKFslam::EKFslam(const rclcpp::NodeOptions & options)
 
   re_init_sys = false;
   ekf_steps_loop_run = false;
+
+ // version info.
+  std::cout << cv::getBuildInformation() << std::endl;
+  arma::arma_version ver;
+  std::cout << "ARMA version: "<< ver.as_string() << std::endl;
   
 }
 //--------------------------------------------------------------------------
@@ -167,7 +174,18 @@ void EKFslam::EKF_LOOP()
                     lslam_data = ekf.get_lslam_data();
                     pub_lslam_Data(lslam_data);
                 }
-             //-------------end publish data ----------------------------------------     
+             //-------------end publish data ----------------------------------------
+             
+             // -- check if a position update is available from the global map component
+             mutex_pos_update.lock();
+              if(pos_update_available == true)
+              {
+                pos_update_available = false;
+                ekf.Update_pos_with_delta(delta_pos_update);
+              }
+             mutex_pos_update.unlock();
+
+
         
         } // if ekf is initilized
 
@@ -366,6 +384,29 @@ void EKFslam::pub_kf(KEYFRAME &KF)
   //cout << KF.r_N << endl;
 
 }
+//------------------------------------------------------------------------------------------------------------------------------
+void EKFslam::Handle_pos_update_service(const std::shared_ptr<interfaces::srv::LSposUpdate::Request> request,std::shared_ptr<interfaces::srv::LSposUpdate::Response> response)
+{
+  
+  double delta_x = request->delta_x;
+  double delta_y = request->delta_y;
+  double delta_z = request->delta_z;
+ 
+  if(delta_x != 0 || delta_y != 0 || delta_z != 0  )
+  {
+    mutex_pos_update.lock();
+
+      delta_pos_update[0] = delta_x;
+      delta_pos_update[1] = delta_y;
+      delta_pos_update[2] = delta_z;
+      pos_update_available = true;
+    mutex_pos_update.unlock();
+  }  
+
+  //cout << "delta_pos update request: " << pos_update << endl;
+
+}
+
 
 
 //-----------------------------------------------------------------------------------------------------------------------------

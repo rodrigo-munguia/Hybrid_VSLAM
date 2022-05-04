@@ -13,6 +13,7 @@
 #include <string>
 #include "interfaces/msg/frame.hpp"
 #include "interfaces/msg/lslam.hpp"
+#include "interfaces/msg/gmap.hpp"
 
 using namespace cv;
 using namespace std;
@@ -48,11 +49,12 @@ private:
   // declare subscribers
   rclcpp::Subscription<interfaces::msg::Frame>::SharedPtr sub_Frame_;
   rclcpp::Subscription<interfaces::msg::Lslam>::SharedPtr sub_lslam_data_;
+  rclcpp::Subscription<interfaces::msg::Gmap>::SharedPtr sub_gmap_data_;
     
   // declare callbacks
   void Frame_callback(const interfaces::msg::Frame & msg) const;
   void lslam_data_callback(const interfaces::msg::Lslam & msg);
-  
+  void gmap_data_callback(const interfaces::msg::Gmap & msg);
   
   //declare Services
   rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv_plot_run_;
@@ -79,13 +81,18 @@ private:
   cv::Mat ANCHORSmap_color;
   std::mutex mutex_get_state;
   std::mutex mutex_clear_scene;
+  std::mutex mutex_clear_get_gmap;
   bool new_clear_scene;
   bool new_robot_pose_flag;
   std::vector<cv::Point3f> LocalSlam_trajectory;
   std::vector<cv::Point2d> Img_matched_feats;
   std::vector<cv::Point2d> Img_unmatched_feats;
   std::vector<cv::Point2d> Img_matched_anchors;
-  std::vector<cv::Point2d> Img_unmatched_anchors;  
+  std::vector<cv::Point2d> Img_unmatched_anchors;
+  std::vector<cv::Affine3d> kf_poses;
+  cv::Mat Gmap;
+  cv::Mat Gmap_color;
+
   bool init_scene;
   void draw_localslam_trajectory();
 

@@ -27,18 +27,21 @@ void Jac_euler_noise_driven_model(arma::vec& x, double delta_t, double Tau_r, do
     // NOTE: this jacobian is defined with respect  to continous equations, so matrix P must be integrated
     // Pdot = Fx*P + P*Fx' + Fu*U*Fu';
     // P = P + Pdot*dt;
+ 
+   //cout << x << endl;
+
     double kr = 1/Tau_r;
     double kp = 1/Tau_p;  
     // Attitude Equations
-    double phi = x(1);
-    double theta = x(2);
-    double psi = x(3);
-    double p = x(4);
-    double q = x(5);
-    double r = x(6);
-    double u = x(10);
-    double v = x(11);
-    double w = x(12);
+    double phi = x[1];
+    double theta = x[2];
+    double psi = x[3];
+    double p = x[4];
+    double q = x[5];
+    double r = x[6];
+    double u = x[10];
+    double v = x[11];
+    double w = x[12];
     // body rotational velocities to euler velocities Rotation matrix   
    arma::mat::fixed<3,3> R_b2e = {{1 ,  sin(phi)*tan(theta) ,  cos(phi)*tan(theta) },
                                   {0 ,       cos(phi)       ,    -sin(phi)         },

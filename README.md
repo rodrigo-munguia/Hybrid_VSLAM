@@ -5,16 +5,16 @@ Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
 R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210. https://doi.org/10.3390/s22010210
 
-![](figures/hvslam_f1.png)
+![](figures/hvslam_f2.png)
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
-*IMPORTANT: Note that this software is under development and some functionalities have not been implemented yet.*  
+*IMPORTANT: Note that this software is under development.*  
 
 **ROS 2 components:** 
 
 -  **Local SLAM** (*Implemented*). The local SLAM component implements a filter-based visual-based SLAM system with state vector-size bounded to maintain real-time operation. By itself, this component produces up-to metric scale (world referenced) estimates of both, the robot state, and a local map of features. But in this case, since old features are removed from the vector state, to maintain real-time operation, previously visited areas of the environment can not be recognized, and thus the accumulated position drift can not be corrected by the same process alone.
-- **Global SLAM** (*To be implemented*). The Global SLAM component takes as input  Key-frames produced by the local SLAM process to create and maintain a global and persistent map of the environment as well as correct the accumulated drift when loops are detected. This component makes use of optimization-based techniques such as bundle adjustment and graph-based SLAM.
+- **Global SLAM** (*Partially implemented*). The Global SLAM component takes as input  Key-frames produced by the local SLAM process to create and maintain a global and persistent map of the environment as well as correct the accumulated drift when loops are detected. This component makes use of optimization-based techniques such as bundle adjustment and graph-based SLAM.
 - **Plot** (*Implemented*). The plot component implements a 3d scene of the robot's pose and trajectory as well as a map of visual features.
 - **Dataset** (*Implemented*). This component emulates an actual robot driver by reading the dataset files and publishing the robot sensor data to ROS topics.
 
@@ -27,9 +27,15 @@ The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See ht
 
 1.- ROS 2 (Galactic)
 
-2.- Armadillo C++ library (tested with version 9.800.4), http://arma.sourceforge.net/
+2.- Armadillo C++ library (tested with version 11.0.1), http://arma.sourceforge.net/ .
+    Armadillo requires BLAS/OPENBLAS and LAPACK libraries installed 
 
-3.- OpenCV with extra modules installed (opencv_contrib) (tested with OpenCV version 4.2.0), https://opencv.org/ Particularly, SFM and VIZ modules are required. VIZ requires VTK support (tested with version 6.3.0).
+3.- OpenCV with extra modules installed (opencv_contrib) (tested with OpenCV version 4.2.0), https://opencv.org/ 
+    The following OpenCV contrib modules are also required or recommended:
+    - VIZ (Required). VIZ requires VTK support (tested with version 8.1.0).
+    - SFM (Recommended). For SFM dependencies check: https://docs.opencv.org/4.x/db/db8/tutorial_sfm_installation.html Note. For compilling OpenCV with SFM, Ceres solver library http://ceres-solver.org/ version < 2.0 is required (tested with 1.14). 
+
+4.- GTSAM c++ library (tested with version 4.1.1) https://gtsam.org/
 
 **Usage:**
 
@@ -70,3 +76,6 @@ At this point, the following menu must appear in the console:
 |   '8'-> view up '5' ->  view down '4'-> view left '6' -> view right  'c'-> clear plot
 ```
 8.- Press the key "p".
+
+*Notes on the sample dataset:* The sample dataset was captured in a very small environment and therefore can be easily mapped using only the local slam component. On the other hand, to test the global mapping component the maximum number of local visual features has been limited to allow the local slam to present error drift. In this latter case, the global mapping component minimizes the drift by using the bundle adjustment technique.
+You can change the number of the local map features allowed by changing parameters: Visual_delete_Maximun_number_XX in the configuration file /config/params.yaml. Or you can for instance deactivate the global mapping pose correction by setting false parameters BA_update_kf_XXX to observe the local slam drift.

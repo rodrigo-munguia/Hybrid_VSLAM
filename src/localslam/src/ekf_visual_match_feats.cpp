@@ -39,7 +39,12 @@ void matchFeatures(const cv::Mat &query, const cv::Mat &target,std::vector<cv::D
 }
 //--------------------------------------------------------------------------
 
-
+// convert an Armadillo matrix to OpenCV matrix. NOTE: no copy is made
+template <typename T>
+cv::Mat_<T> to_cvmat(const arma::Mat<T> &src)
+{
+  return cv::Mat_<double>{int(src.n_cols), int(src.n_rows), const_cast<T*>(src.memptr())};
+}
 
 //----------------------------------------------------------------------------------------------------
 // Function for matching visual features frame to frame using visual descriptors
@@ -222,6 +227,8 @@ int EKF::Visual_match_feats_by_descriptors_e(FRAME *frame)
        
        // Select KeyFrames
        Visual_match_SelectKeyFrames(frame,n_m_points,t_c2r, Rr2c, r_N, Rn2r);
+      
+               
 
        return n_m_points; // return the sum of the number of matched feats/anchors
        
@@ -233,7 +240,8 @@ int EKF::Visual_match_feats_by_descriptors_e(FRAME *frame)
 
 void EKF::Visual_match_SelectKeyFrames(FRAME *frame, int n_m_points,arma::vec::fixed<3> t_c2r, arma::mat::fixed<3,3> Rr2c, arma::vec::fixed<3> r_N, arma::mat::fixed<3,3> Rn2r)
 {   
-    
+    static bool init_kf = false;
+
     static int count_f=0;
     static arma::vec::fixed<3> last_robot_pos = {0,0,0};
     count_f++;
@@ -261,23 +269,48 @@ void EKF::Visual_match_SelectKeyFrames(FRAME *frame, int n_m_points,arma::vec::f
     double dist_travel_by_robot = arma::norm(last_robot_pos - x.subvec(7,9) ) ; // distance from last KeyFrame
     
     double ratio_dist_pd = dist_travel_by_robot/mean_feat_depth;
+    
+    
+    
 
 
-    if ((count_f > PAR.Select_KeyFrames_min_n_frames_between_kf)&&(n_m_points > PAR.Select_KeyFrames_min_n_matches)&&(ratio_dist_pd > PAR.Select_KeyFrames_min_ratio_distance_depth))
+    if (init_kf == true &&(count_f > PAR.Select_KeyFrames_min_n_frames_between_kf)&&(n_m_points > PAR.Select_KeyFrames_min_n_matches)&&(ratio_dist_pd > PAR.Select_KeyFrames_min_ratio_distance_depth))
         { 
 
            KF_selected.frame = frame->image;
            KF_selected.r_N = r_N;
            KF_selected.Rn2r = Rn2r;
            KF_selected.t_c2r = t_c2r;
-           KF_selected.Rr2c = Rr2c;           
-           //cout << "New Keyframe selected " << endl;
+           KF_selected.Rr2c = Rr2c;
+
+           /*           
+           cout << "New Keyframe selected " << endl;
+           cout << "r_N: " << r_N << endl;
+           cout << "Rn2r: " << Rn2r << endl;
+           cout << "t_c2r: " << t_c2r << endl;
+           cout << "Rr2c: " << Rr2c << endl;
+           */
 
            count_f = 0;
            last_robot_pos = x.subvec(7,9);
            NewKF_available = true; 
 
-        }       
+        }
+
+    if(init_kf ==false && (n_m_points > PAR.Select_KeyFrames_min_n_matches))
+    {
+           KF_selected.frame = frame->image;
+           KF_selected.r_N = r_N;
+           KF_selected.Rn2r = Rn2r;
+           KF_selected.t_c2r = t_c2r;
+           KF_selected.Rr2c = Rr2c;
+           count_f = 0;
+           last_robot_pos = x.subvec(7,9);
+           NewKF_available = true;
+
+           init_kf = true; 
+
+    }           
    
    
 

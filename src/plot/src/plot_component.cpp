@@ -39,6 +39,7 @@ PLOTscene::PLOTscene(const rclcpp::NodeOptions & options)
    // Set subscribers
   sub_Frame_ = this->create_subscription<interfaces::msg::Frame>("Frame_topic", 10, std::bind(&PLOTscene::Frame_callback, this, _1)); 
   sub_lslam_data_ = this->create_subscription<interfaces::msg::Lslam>("lslam_data_topic", 10, std::bind(&PLOTscene::lslam_data_callback, this, _1)); 
+  sub_gmap_data_ = this->create_subscription<interfaces::msg::Gmap>("gmap_data_topic",10,std::bind(&PLOTscene::gmap_data_callback, this, _1));
 
   // plot thread
   viewer_active = true;
@@ -86,7 +87,7 @@ void PLOTscene::draw_localslam_trajectory()
           string id = to_string(i);
           viz::WLine segment(LocalSlam_trajectory[i-1], LocalSlam_trajectory[i]);
           segment.setRenderingProperty(viz::LINE_WIDTH, 1.0);
-          segment.setRenderingProperty(viz::OPACITY,0.5);
+          segment.setRenderingProperty(viz::OPACITY,0.8);
           viewer.showWidget(id, segment);
         }  
     //    }
@@ -267,9 +268,6 @@ void PLOTscene::PLOT_LOOP()
               cloud_local_map_anchors.setRenderingProperty(cv::viz::POINT_SIZE, 2);
               viewer.showWidget( "Cloud_anchors", cloud_local_map_anchors );
             }
-
-
-
             new_robot_pose_flag = false;
           }
         mutex_get_state.unlock();
@@ -282,6 +280,28 @@ void PLOTscene::PLOT_LOOP()
           }
         mutex_set_cam.unlock(); 
         //------------------------------
+        // plot gmap
+        
+        
+        mutex_clear_get_gmap.lock();
+         
+          for(int i = 0; i < kf_poses.size(); i++)
+          {             
+            string id = "kf" + to_string(i);       
+            
+                cv::viz::WCameraPosition kf_i_pos(Vec2f(0.889484, 0.523599),.05,cv::viz::Color::cyan());
+                  viewer.showWidget(id,kf_i_pos,kf_poses[i]);
+                       
+          }  
+          if(!Gmap.empty())
+            {
+              cv::viz::WCloud cloud_local_map(Gmap,Gmap_color);
+              cloud_local_map.setRenderingProperty(cv::viz::POINT_SIZE, 1);
+              viewer.showWidget( "Gmap_anchors", cloud_local_map );
+            }       
+       
+        mutex_clear_get_gmap.unlock();   
+       
 
 
         viewer.spinOnce(1, true);
@@ -327,8 +347,10 @@ void PLOTscene::reset_scene()
   } 
   */
   LocalSlam_trajectory.clear();
-  viewer.removeAllWidgets();    
+  viewer.removeAllWidgets();
+  kf_poses.clear();    
   init_scene = false;
+
 
 }
 
@@ -490,6 +512,56 @@ void PLOTscene::Frame_callback(const interfaces::msg::Frame & msg) const
     frame = cv_ptr->image;
   mutex_frame.unlock();    
   
+}
+//-----------------------------------------------------------------------------------------------------------
+void PLOTscene::gmap_data_callback(const interfaces::msg::Gmap & msg)
+{
+  
+  mutex_clear_get_gmap.lock();
+
+  kf_poses.clear();
+  Gmap.release();
+  Gmap_color.release();
+  //cv::Vec3f  t_l;
+  for(int i = 0; i < msg.n2c.size();i++)
+    {
+      double quat[4];
+      quat[0] = msg.n2c[i].rotation.w;
+      quat[1] = msg.n2c[i].rotation.x;
+      quat[2] = msg.n2c[i].rotation.y;
+      quat[3] = msg.n2c[i].rotation.z;  
+      double Rn2c_a[9];
+      quat2R_row_major(quat,Rn2c_a);
+      cv::Mat Rn2c = cv::Mat(3,3,CV_64FC1,Rn2c_a);
+      cv::Mat Rc2n = Rn2c.t(); 
+      cv::Vec3f  t_c;
+      t_c(0) = msg.n2c[i].translation.x;//cv::Mat pt(1, 3, CV_64FC3); 
+      t_c(1) = msg.n2c[i].translation.y;
+      t_c(2) = msg.n2c[i].translation.z;
+      cv::Affine3d kf_i_pos = cv::Affine3d(Rc2n, t_c);      
+      
+      kf_poses.push_back(kf_i_pos);
+      //t_l = t_c;   
+    }
+    //cout << "plot last kf pos: "  << t_l << endl;
+
+    for(int i = 0; i < msg.gmap_anchors.size();i++)
+    {
+      cv::Mat pt(1, 3, CV_64FC3);
+      pt.at<double>(0,0) = msg.gmap_anchors[i].x;
+      pt.at<double>(0,1) = msg.gmap_anchors[i].y;
+      pt.at<double>(0,2) = msg.gmap_anchors[i].z;
+      Gmap.push_back(pt);
+      cv::Mat col(1, 3, CV_8UC3);
+      col.at<char>(0,0) = 0;  // B
+      col.at<char>(0,1) = 255;  // G
+      col.at<char>(0,2) = 0;  // R   
+      Gmap_color.push_back(col); 
+    }    
+   
+
+   mutex_clear_get_gmap.unlock(); 
+
 }
 //--------------------------------------------------------------------------------------------------------
 void  PLOTscene::lslam_data_callback(const interfaces::msg::Lslam & msg) 

@@ -1,15 +1,15 @@
 #ifndef EKF_H
 #define EKF_H
 
-
+//#include </usr/include/armadillo>
 #include <armadillo>
 #include "parameters.hpp"
-//#include "getData.hpp"
 #include "localslam_types.hpp"
 #include "ekf_types.hpp"
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include "../../globalslam/src/globalslam_types.hpp"
 #include "../../common/Vision/vision.hpp"
+
 
 
 using namespace arma;
@@ -91,6 +91,7 @@ class EKF
         LOCALSLAM_DATA get_lslam_data();
         bool get_KeyFrame(KEYFRAME &KF);
         bool get_RobotState(arma::vec::fixed<13> &x_r);
+        void Update_pos_with_delta(arma::vec::fixed<3> delta_pos);
         
 
     

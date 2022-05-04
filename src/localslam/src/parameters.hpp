@@ -108,8 +108,12 @@ struct parameters
     int Select_KeyFrames_min_n_matches;
     double Select_KeyFrames_min_ratio_distance_depth;
 
-    
-
+    // position update from global slam
+    bool GS_xy_update;
+    bool GS_z_update;
+    double GS_xy_update_max_delta;
+    double GS_z_update_max_delta; 
+ 
 
 } ;   
 

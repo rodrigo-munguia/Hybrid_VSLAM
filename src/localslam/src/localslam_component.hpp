@@ -30,6 +30,7 @@
 #include <mutex>
 #include "parameters.hpp"
 #include "interfaces/srv/simple_serv.hpp"
+#include "interfaces/srv/l_spos_update.hpp"
 #include "interfaces/msg/lslam.hpp"
 #include "../../globalslam/src/globalslam_types.hpp"
 
@@ -68,7 +69,8 @@ private:
   // declare Services
   rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv_ekf_run_;
   void Handle_ekf_run_service(const std::shared_ptr<interfaces::srv::SimpleServ::Request> request,std::shared_ptr<interfaces::srv::SimpleServ::Response> response);
-
+  rclcpp::Service<interfaces::srv::LSposUpdate>::SharedPtr srv_pos_update_;
+  void Handle_pos_update_service(const std::shared_ptr<interfaces::srv::LSposUpdate::Request> request,std::shared_ptr<interfaces::srv::LSposUpdate::Response> response);
   // declare publishers
   rclcpp::Publisher<interfaces::msg::Lslam>::SharedPtr pub_lslam_data_;
   rclcpp::Publisher<interfaces::msg::Kf>::SharedPtr pub_kf_;
@@ -93,6 +95,10 @@ private:
   std::mutex mutex_ekf_run;  
   std::mutex mutex_get_state;
   std::mutex mutex_init_system;
+  std::mutex mutex_pos_update;
+  bool pos_update_available;
+  arma::vec::fixed<3> delta_pos_update;
+
   bool re_init_sys;
   bool new_slam_state_flag;
   
