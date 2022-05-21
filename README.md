@@ -9,12 +9,12 @@ R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architectur
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
-*IMPORTANT: Note that this software is under development.*  
+*IMPORTANT: Note that this software is under active development.*  
 
 **ROS 2 components:** 
 
 -  **Local SLAM** (*Implemented*). The local SLAM component implements a filter-based visual-based SLAM system with state vector-size bounded to maintain real-time operation. By itself, this component produces up-to metric scale (world referenced) estimates of both, the robot state, and a local map of features. But in this case, since old features are removed from the vector state, to maintain real-time operation, previously visited areas of the environment can not be recognized, and thus the accumulated position drift can not be corrected by the same process alone.
-- **Global SLAM** (*Partially implemented*). The Global SLAM component takes as input  Key-frames produced by the local SLAM process to create and maintain a global and persistent map of the environment as well as correct the accumulated drift when loops are detected. This component makes use of optimization-based techniques such as bundle adjustment and graph-based SLAM.
+- **Global SLAM** (*Implemented*). The Global SLAM component takes as input  Key-frames produced by the local SLAM process to create and maintain a global and persistent map of the environment as well as correct the accumulated drift when loops are detected. This component makes use of optimization-based techniques such as bundle adjustment and graph-based SLAM.
 - **Plot** (*Implemented*). The plot component implements a 3d scene of the robot's pose and trajectory as well as a map of visual features.
 - **Dataset** (*Implemented*). This component emulates an actual robot driver by reading the dataset files and publishing the robot sensor data to ROS topics.
 
