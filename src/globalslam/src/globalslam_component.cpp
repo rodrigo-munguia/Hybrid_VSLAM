@@ -18,6 +18,7 @@
 #include "../../common/Transforms/quat2R.hpp"
 #include "gmap.hpp"
 #include "../../common/Transforms/Ra2b_TO_Quat_a2b.hpp"
+#include "aux_functions.hpp"
 
 
 using namespace std;
@@ -39,7 +40,8 @@ Gslam::Gslam(const rclcpp::NodeOptions & options)
   setParameters();
 
   // Set subscribers
-  sub_Kf_ = this->create_subscription<interfaces::msg::Kf>("Kf_topic", 10, std::bind(&Gslam::Kf_callback, this, _1)); 
+  sub_Kf_ = this->create_subscription<interfaces::msg::Kf>("Kf_topic", 10, std::bind(&Gslam::Kf_callback, this, _1));
+  sub_Kf_cl_ = this->create_subscription<interfaces::msg::Kf>("Kf_cl_topic", 10, std::bind(&Gslam::Kf_cl_callback, this, _1));  
   // Set services
   
   // Set clients
@@ -49,9 +51,16 @@ Gslam::Gslam(const rclcpp::NodeOptions & options)
   // Set publishers
   pub_gmap_data_ = create_publisher<interfaces::msg::Gmap>("gmap_data_topic",10);
 
-  // Use a timer to schedule periodic message publishing.
+  // set threads
   gmap_thread_loop_run = true;
   gmap_loop_ = thread(&Gslam::GMAP_LOOP,this);
+
+  cloop_thread_loop_run = true;
+  cloop_loop_ = thread(&Gslam::CLOOP_LOOP,this);
+
+  gmap_updated = false;
+  new_kf_cl = false;
+  loop_closed_flag = false;
   
 }
 //--------------------------------------------------------------------------
@@ -68,7 +77,7 @@ Gslam::~Gslam()
 void Gslam::GMAP_LOOP()
   {
    
-    GMAP gmap(PAR); // create EKF object  
+    GMAP gmap(PAR); // create GMAP object  
     cout << "-> Global map thread running... " << endl; 
     
    
@@ -76,6 +85,19 @@ void Gslam::GMAP_LOOP()
     {
 
         bool new_kf = false;  
+        //-- check if a loop has been closed ------------------
+        mutex_get_gm.lock();
+          if(loop_closed_flag == true)
+          {
+            loop_closed_flag = false;
+            // Set the Global map with the copy updated by the closing loop process
+            gmap.Set_GlobalMap(Gmap);
+            // Reset kf waiting in buffer
+            Kf_buffer.clear();
+          }
+        mutex_get_gm.unlock();
+        //--------------------------------------------------------
+        
         mutex_rx_kf.lock();           
           if(Kf_buffer.size() > 0)
           {
@@ -90,29 +112,102 @@ void Gslam::GMAP_LOOP()
 
         if(new_kf == true)
         { 
-          // if there are some new Keyframes do a global map process step
+          // if there are some new Keyframes update the global map
           gmap.Update();
-        
+          
+         
 
           mutex_get_gm.lock();
-            gmap.Get_GlobalMap(Gmap); // get the updated global map
-            // publish global map data            
-            Publish_gmap_data();
+            if(loop_closed_flag == false) // for synchronizing global map update after a close loop
+            {
+              gmap.Get_GlobalMap(Gmap); // Update the local copy of the Global Map
+              //print_VG(Gmap );
+              // publish global map data            
+              Publish_gmap_data();
+              gmap_updated = true;
+            }           
           mutex_get_gm.unlock();
-          
-          arma::vec::fixed<3> delta_pos = gmap.Get_delta_pos();
-          Send_local_slam_pos_update(delta_pos); 
+            
+           
+           if(loop_closed_flag == false) // for synchronizing global map update after a close loop
+            {
+              arma::vec::fixed<3> delta_pos = gmap.Get_delta_pos();
+              mutex_send_pos.lock();
+                Send_local_slam_pos_update(delta_pos,"bundle_adjustment");
+              mutex_send_pos.unlock();
+            }     
 
         }
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(200)); // sleep a short period of time to save proccesor use
+      std::this_thread::sleep_for(std::chrono::milliseconds(100)); // sleep a short period of time to save proccesor use
     }  
 
 
 
   }
+//-------------------------------------------------------------------
+//  Close-loop  loop (this function runs in a separate thread)
+// Rodrigo M. 2022
+void Gslam::CLOOP_LOOP()
+{
+   
+   CLOOP cloop(PAR); // create GMAP object  
+   cout << "-> Close-loop thread running... " << endl; 
+
+
+
+  while(cloop_thread_loop_run == true)  // thread main loop
+    {   
+      
+      if(gmap_updated == true) // if global map has been updated, then get a local copy
+      { 
+        gmap_updated = false;        
+        mutex_get_gm.lock();           
+          cloop.Set_GlobalMap(Gmap);
+        mutex_get_gm.unlock();        
+      }
+      if(new_kf_cl == true)
+      {
+          new_kf_cl = false;
+          // carried out a close loop step
+          mutex_rx_kf_cl.lock();
+            KEYFRAME kf_cl = kf_cl_last;
+          mutex_rx_kf_cl.unlock();
+          
+          cloop.Step(kf_cl);
+
+          // If a loop has been closed -------------
+          if(cloop.Get_close_loop_state() == true)
+          {
+            cloop.Set_close_loop_state(false);
+            
+            arma::vec::fixed<3> delta_pos = cloop.Get_delta_pos();
+            mutex_send_pos.lock();            
+              Send_local_slam_pos_update(delta_pos,"close_loop"); //  Update the pose of local slam process
+            mutex_send_pos.unlock();  
+            
+            mutex_get_gm.lock(); 
+              cloop.Get_GlobalMap(Gmap); // Update the local copy of the Global Map
+              //Gmap.CL_flag = true;
+              Publish_gmap_data();
+              loop_closed_flag = true; // set the flag true
+            mutex_get_gm.unlock();           
+
+          }
+          //----------------------------------------
+      }     
+
+
+       std::this_thread::sleep_for(std::chrono::milliseconds(100)); // sleep a short period of time to save proccesor use 
+    }    
+
+
+
+}
+
+
 //------------------------------------------------------------------
- void Gslam::Send_local_slam_pos_update(arma::vec::fixed<3> &Delta_kf_n)
+ void Gslam::Send_local_slam_pos_update(arma::vec::fixed<3> &Delta_kf_n,std::string type)
  {
 
    //cout << "delta_pos: " << Delta_kf_n << endl;
@@ -120,7 +215,8 @@ void Gslam::GMAP_LOOP()
    auto request = std::make_shared<interfaces::srv::LSposUpdate::Request>();
    request->delta_x = Delta_kf_n[0];
    request->delta_y = Delta_kf_n[1];  
-   request->delta_z = Delta_kf_n[2];             
+   request->delta_z = Delta_kf_n[2];
+   request->type = type;             
    
    auto result = client_local_slam_pos_update_->async_send_request(request);
 
@@ -171,8 +267,68 @@ void Gslam::Publish_gmap_data()
 
  pub_gmap_data_->publish(message); 
 }
+//--------------------------------------------------------------
+// close loop "intermediate" KeyFrame callback
+// Rodrigo M. 2022
+void Gslam::Kf_cl_callback(const interfaces::msg::Kf & msg) 
+  {
+    KEYFRAME kf;
 
+    cv_bridge::CvImagePtr cv_ptr;
+    cv_ptr = cv_bridge::toCvCopy(msg.img,sensor_msgs::image_encodings::MONO8 );
+    
+    //cout << cv_ptr->image.cols << endl;
 
+    kf.frame = cv_ptr->image;
+    arma::vec::fixed<3> t_c2r;
+    t_c2r(0) = msg.r2c.translation.x;
+    t_c2r(1) = msg.r2c.translation.y;
+    t_c2r(2) = msg.r2c.translation.z;
+    kf.t_c2r = t_c2r;
+
+    double quat[4];
+    quat[0] = msg.r2c.rotation.w;
+    quat[1] = msg.r2c.rotation.x;
+    quat[2] = msg.r2c.rotation.y;
+    quat[3] = msg.r2c.rotation.z;  
+    double Rr2c_a[9];
+    quat2R_col_major(quat,Rr2c_a);
+    arma::mat Rr2c(Rr2c_a,3,3); // convert from arrat to armadillo
+
+    kf.Rr2c = Rr2c;
+    arma::vec::fixed<3> r_N;
+    r_N(0) = msg.n2r.translation.x;
+    r_N(1) = msg.n2r.translation.y;
+    r_N(2) = msg.n2r.translation.z;
+    kf.r_N = r_N;
+
+    double quat2[4];
+    quat2[0] = msg.n2r.rotation.w;
+    quat2[1] = msg.n2r.rotation.x;
+    quat2[2] = msg.n2r.rotation.y;
+    quat2[3] = msg.n2r.rotation.z;  
+    double Rn2r_a[9];
+    quat2R_col_major(quat2,Rn2r_a);
+    arma::mat Rn2r(Rn2r_a,3,3); // convert from arrat to armadillo
+
+    kf.Rn2r = Rn2r;
+
+    kf.Rn2c =  Rr2c*Rn2r;
+    kf.t_c2n = r_N + Rn2r.t()*t_c2r;
+    /*           
+           cout << "New Keyframe received " << endl;
+           cout << "r_N: " << kf.r_N << endl;
+           cout << "Rn2r: " << Rn2r << endl;
+           cout << "t_c2r: " << kf.t_c2r << endl;
+           cout << "Rr2c: " << Rr2c << endl;
+    */      
+
+    mutex_rx_kf_cl.lock(); 
+      kf_cl_last = kf;
+       new_kf_cl = true;
+    mutex_rx_kf_cl.unlock();     
+
+  }  
 
 //---------------------------------------------------------------
 // KeyFrame callback

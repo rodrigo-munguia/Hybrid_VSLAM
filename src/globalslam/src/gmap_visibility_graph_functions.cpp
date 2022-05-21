@@ -1,5 +1,42 @@
 #include "gmap.hpp"
 
+//------------------------------------------------------------------------------------------------
+std::vector<int> GMAP::Get_n_oldest_visually_linked_kf(int idx_kf,int n_oldest, int min_v_strength )
+{
+
+  std::vector<int> idx_vl_kf;
+    
+   
+    int n_added = 0;
+    
+    for (int i = 0 ; i < idx_kf ; i++)
+    {
+      int n_vlp = (int)Gmap.Vgraph.at(idx_kf,i);
+      if(n_vlp > min_v_strength)
+      {
+        idx_vl_kf.push_back(i);
+        n_added++;
+      }
+      if(n_added > n_oldest)
+      {
+        break;
+      }
+
+    }
+    
+    if(n_added > 0)
+    {
+      return idx_vl_kf;
+    }
+    else
+    {
+      return std::vector<int>();
+    }  
+
+
+
+
+}
 
 
 //------------------------------------------------------------------
@@ -36,8 +73,9 @@ std::vector<int> GMAP::Get_idx_visually_linked_to_KF(int idx_KF)
     std::vector<int> idx_vl_kf;
     
     bool empty = true;
+    int n_cols = Gmap.Vgraph.n_cols;
     
-    for (int i = 0 ; i < idx_KF ; i++)
+    for (int i = 0 ; i < n_cols ; i++)
     {
       int n_vlp = (int)Gmap.Vgraph.at(idx_KF,i);
       if(n_vlp > 0)

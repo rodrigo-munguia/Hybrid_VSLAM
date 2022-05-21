@@ -24,9 +24,16 @@ void GMAP::Match_Gmap_points_into_new_KF()
   cv::Mat Descriptors_A; // For storing descriptors of candidate anchors (map points)
   std::vector<int64> Idx_candidate_A;  // index candidate anchors
   std::vector<cv::Point2d> Predicted_projections; // vector of predicted projections into the KF
-  // search for map points that can be potentially matched into the new KF 
+  // search for map points that can be potentially matched into the new KF
+  int idx_kf_min_ref_for_search_matches = Gmap.KeyFDATA.size() - PAR.BA_max_n_previous_kf_for_search_matches;
+      if(idx_kf_min_ref_for_search_matches<0)idx_kf_min_ref_for_search_matches = 0;
+   
+
    for(int i = Gmap.AnchorsDATA.size()-1; i >=0 ; i--)
-    {
+    { 
+      // to avoid to search for matches in keyframes that will not be taken into acount for bundle adjustment   
+      if(Gmap.AnchorsDATA[i].init_KF > idx_kf_min_ref_for_search_matches)
+      {   
          arma::mat::fixed<3,3> Rn2c = Gmap.KeyFDATA[idx_KF].Rn2c;
          arma::vec::fixed<3> t_c2n = Gmap.KeyFDATA[idx_KF].t_c2n;                
          arma::vec::fixed<3> pxyz = Gmap.AnchorsDATA[i].AnchorState;
@@ -45,7 +52,7 @@ void GMAP::Match_Gmap_points_into_new_KF()
           Descriptors_A.push_back(Gmap.AnchorsDATA[i].Descriptor); // add descriptor of candidate map point
           Predicted_projections.push_back(uvd);
         }  
-
+      }
     }  
     
     if (Predicted_projections.size() > 0)
@@ -99,18 +106,44 @@ void GMAP::Match_New_points_into_previous_KF(std::vector<int64> &idx_new_points,
   }
 
   if (Gmap.KeyFDATA.size() > 2)
-  {
+  {   
+      int idx_current_KF = Gmap.KeyFDATA.size()-1;
       int idx_previous_KF = Gmap.KeyFDATA.size()-2;
-      
+      int idx_old_KF = idx_previous_KF - PAR.BA_max_n_kf_optimized;
+      if(idx_old_KF < 0)idx_old_KF = 0;
       //cout << Gmap.Vgraph << endl;
 
-      std::vector<int> idx_linked_KF = Get_idx_visually_linked_to_KF(idx_previous_KF);
-      
+      std::vector<int> idx_linked_KF;
+
+        /*
+        std::vector<int> idx_linked_KF_t; 
+        idx_linked_KF_t = Get_idx_visually_linked_to_KF(idx_previous_KF);         
+        for(int i = 0; i < idx_linked_KF_t.size(); i++)
+        {
+          int idx_kf = idx_linked_KF_t[i];
+          if((idx_kf != idx_current_KF) && ( idx_kf != idx_previous_KF)  )
+          {
+            idx_linked_KF.push_back(idx_kf);
+          }
+        }
+        */
+      int idx_kf_min_ref_for_search_matches = Gmap.KeyFDATA.size() - PAR.BA_max_n_previous_kf_for_search_matches;
+      if(idx_kf_min_ref_for_search_matches<0)idx_kf_min_ref_for_search_matches = 0;
+    
+      for(int i = 0; i < idx_previous_KF; i++)
+      {
+        if (i > idx_kf_min_ref_for_search_matches)
+        {
+          idx_linked_KF.push_back(i);
+        }
+      }
+
+
       for (int i = 0; i < idx_linked_KF.size() ; i++)
       {       
               int idx_kf_target = idx_linked_KF[i];
               // to avoid to search for matches in keyframes that will not be taken into acount for bundle adjustment  
-              if(idx_kf_target >= idx_Fixed_kf_ref)   
+              if(idx_kf_target >= idx_kf_min_ref_for_search_matches)   
               {
                 // try to match
                 std::vector<cv::DMatch> matches;

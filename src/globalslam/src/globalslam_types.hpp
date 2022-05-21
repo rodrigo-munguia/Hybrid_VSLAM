@@ -55,7 +55,10 @@ struct GLOBAL_MAP
     std::vector<KEYFRAME> KeyFDATA;  // Structure for storing KeyFrames
     std::vector<G_ANCHOR> AnchorsDATA; // Structure for storing map points (anchors)
     arma::mat Vgraph; // visibility graph 
-
+    //int idx_Fixed_kf_ref_BA; // index of the i-(oldest) keyFrame that will be considered "fixed" for BA
+    int idx_ref_pose_slam;
+    
+    
 };
 
 

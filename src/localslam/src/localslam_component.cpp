@@ -77,7 +77,8 @@ EKFslam::EKFslam(const rclcpp::NodeOptions & options)
   
   // Set publishers
   pub_lslam_data_ = create_publisher<interfaces::msg::Lslam>("lslam_data_topic",10);
-  pub_kf_ = create_publisher<interfaces::msg::Kf>("Kf_topic",10);
+  pub_kf_ = create_publisher<interfaces::msg::Kf>("Kf_topic",10);pub_kf_ = create_publisher<interfaces::msg::Kf>("Kf_topic",10);
+  pub_kf_cl_ = create_publisher<interfaces::msg::Kf>("Kf_cl_topic",10);
   pub_robot_state_ =  create_publisher<interfaces::msg::Robotstate>("Robotstate_topic",10);
 
     
@@ -152,13 +153,13 @@ void EKFslam::EKF_LOOP()
             
             ekf.ekf_step(dat); // perform a filter step
             
-            // after ekf step publish data --------------------------------------
+            //------- after ekf step publish stuff!!! --------------------------------------
                 // check if the robot state has been updated, if so, then publish
                 arma::vec::fixed<13> x_r; 
                 if (ekf.get_RobotState(x_r) == true)
                 {
                   pub_robot_state(x_r);
-                }             
+                }        
 
                 if (dat.data_type == "frame")
                 {
@@ -166,9 +167,15 @@ void EKFslam::EKF_LOOP()
                   KEYFRAME KF;
                   if(ekf.get_KeyFrame(KF) == true)
                   {
-                    // publish keyframe
+                    // publish keyframe for global mapping process
                     pub_kf(KF);
                   } 
+                  KEYFRAME KFCL;
+                  if(ekf.get_KeyFrameCL(KFCL) == true)
+                  {
+                    // publish "intermediate" keyframe for closing-loop process
+                    pub_kf_cl(KFCL);
+                  }
                     // publish local slam data             
                     LOCALSLAM_DATA lslam_data;
                     lslam_data = ekf.get_lslam_data();
@@ -178,10 +185,10 @@ void EKFslam::EKF_LOOP()
              
              // -- check if a position update is available from the global map component
              mutex_pos_update.lock();
-              if(pos_update_available == true)
+              if(pos_update.pos_update_available == true)
               {
-                pos_update_available = false;
-                ekf.Update_pos_with_delta(delta_pos_update);
+                pos_update.pos_update_available = false;
+                ekf.Update_pos_with_delta(pos_update.delta_pos_update,pos_update.type);
               }
              mutex_pos_update.unlock();
 
@@ -340,6 +347,51 @@ void EKFslam::pub_lslam_Data(LOCALSLAM_DATA &lslam_data)
 
 
 }
+//----------------------------------------------------------------------------------------------------------------
+// Publish "intermediate"KeyFrames to topic
+// Rodrigo M. 2022
+void EKFslam::pub_kf_cl(KEYFRAME &KF)
+{ 
+  
+  arma::vec::fixed<4> q_r2c; 
+  Ra2b_TO_Quat_a2b_arma(KF.Rr2c, q_r2c); 
+  
+    geometry_msgs::msg::Transform t_r2c;
+    t_r2c.translation.x = KF.t_c2r(0);
+    t_r2c.translation.y = KF.t_c2r(1);
+    t_r2c.translation.z = KF.t_c2r(2);
+
+    t_r2c.rotation.w =  q_r2c(0);
+    t_r2c.rotation.x =  q_r2c(1);
+    t_r2c.rotation.y =  q_r2c(2);
+    t_r2c.rotation.z =  q_r2c(3);
+
+  arma::vec::fixed<4> q_n2r; 
+  Ra2b_TO_Quat_a2b_arma(KF.Rn2r, q_n2r);
+
+    geometry_msgs::msg::Transform t_n2r;
+    t_n2r.translation.x = KF.r_N(0);
+    t_n2r.translation.y = KF.r_N(1);
+    t_n2r.translation.z = KF.r_N(2);
+
+    t_n2r.rotation.w =  q_n2r(0);
+    t_n2r.rotation.x =  q_n2r(1);
+    t_n2r.rotation.y =  q_n2r(2);
+    t_n2r.rotation.z =  q_n2r(3);
+
+  auto message = interfaces::msg::Kf();
+    message.r2c = t_r2c;
+    message.n2r = t_n2r;
+  
+  sensor_msgs::msg::Image::SharedPtr img_msg; 
+  img_msg = cv_bridge::CvImage(std_msgs::msg::Header(), sensor_msgs::image_encodings::MONO8, KF.frame).toImageMsg();        
+  message.img = *img_msg;
+
+  pub_kf_cl_->publish(message);
+  //cout << KF.r_N << endl;
+
+}
+
 //--------------------------------------------------------------------------------------------------------------
 // Publish KeyFrames to topic
 // Rodrigo M. 2022
@@ -391,15 +443,17 @@ void EKFslam::Handle_pos_update_service(const std::shared_ptr<interfaces::srv::L
   double delta_x = request->delta_x;
   double delta_y = request->delta_y;
   double delta_z = request->delta_z;
+  string type = request->type;
  
   if(delta_x != 0 || delta_y != 0 || delta_z != 0  )
   {
     mutex_pos_update.lock();
 
-      delta_pos_update[0] = delta_x;
-      delta_pos_update[1] = delta_y;
-      delta_pos_update[2] = delta_z;
-      pos_update_available = true;
+      pos_update.delta_pos_update[0] = delta_x;
+      pos_update.delta_pos_update[1] = delta_y;
+      pos_update.delta_pos_update[2] = delta_z;
+      pos_update.pos_update_available = true;
+      pos_update.type = type;
     mutex_pos_update.unlock();
   }  
 

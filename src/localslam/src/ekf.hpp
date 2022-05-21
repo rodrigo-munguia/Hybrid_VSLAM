@@ -42,8 +42,10 @@ class EKF
         arma::vec::fixed<3> t_c2r;  // vector defining the position of the camara respect to the robot frame 
         arma::mat::fixed<3,3> Rr2c; // Robot to camera rotation matrix
 
-        KEYFRAME KF_selected; // for storing selected keyframes
+        KEYFRAME KF_selected; // for storing selected keyframes        
+        KEYFRAME KF_cl; // for the closing loop process        
         bool NewKF_available;
+        bool New_KF_cl;
 
         bool NewRobotState_available;        
 
@@ -90,8 +92,9 @@ class EKF
         void set_ekf_initialized_statet(bool state); 
         LOCALSLAM_DATA get_lslam_data();
         bool get_KeyFrame(KEYFRAME &KF);
+        bool get_KeyFrameCL(KEYFRAME &KF);
         bool get_RobotState(arma::vec::fixed<13> &x_r);
-        void Update_pos_with_delta(arma::vec::fixed<3> delta_pos);
+        void Update_pos_with_delta(arma::vec::fixed<3> delta_pos, string type);
         
 
     

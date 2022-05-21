@@ -142,7 +142,8 @@ std::vector<int64> GMAP::Init_new_map_points()
           Points_m1.push_back(point_idx_m1); 
         }      
     cv::Mat status;
-    cv::Mat H = cv::findHomography(Points_m2,Points_m1,cv::RANSAC,10,status);
+    //cv::Mat H = cv::findHomography(Points_m2,Points_m1,cv::RANSAC,10,status);
+    cv::Mat H = cv::findFundamentalMat(Points_m2, Points_m1, cv::RANSAC, 3, 0.99, status );
     // obtain inliers
         std::vector<cv::DMatch> inliers;   // Store correct matches in "inliers"
         for(size_t i = 0; i < Points_m2.size(); i++) 
@@ -153,7 +154,7 @@ std::vector<int64> GMAP::Init_new_map_points()
                 }
             }
     // ----------------------------------------------------------------------------------------
-    
+    //cout << "inliers: " << inliers.size() << endl;
     // ------------ In order to no over saturate the global map, remove matches that are to close to previous matched map points
     std::vector<cv::DMatch> Matches_final; 
     for(unsigned int i =0 ; i< inliers.size();i++ ) // for each inlier, 
@@ -185,7 +186,7 @@ std::vector<int64> GMAP::Init_new_map_points()
 
        } 
     //----------------------------------------------------------------------------------------       
-
+    // cout << "Matches_final: " << Matches_final.size() << endl;
     //-----------------------------------------------------------------------
     //  previous view: Rotation matrix and translation vector    
    arma::mat::fixed<3,3> Rn2c_2 = Gmap.KeyFDATA[idx_previous_KF].Rn2c;
@@ -278,8 +279,10 @@ std::vector<int64> GMAP::Init_new_map_points()
             cv::Mat points3d;    
             cv::sfm::triangulatePoints(points2d,projection_matrices,points3d );    
         
-           //cout << "SFM triangulate:" << endl;
-            arma::mat::fixed<3,3> Rc2n_2 = Rn2c_2.t();   
+            //cout << "SFM triangulate: " << points3d.size() <<  endl;
+            arma::mat::fixed<3,3> Rc2n_2 = Rn2c_2.t(); 
+
+
             for(int i = 0; i < points3d.cols; i++ )
                 {   
                     int idx_descriptor_previous = Matches_final[i].queryIdx; // get index of the descriptor in KetFDATA[KeyFDATA.size()-2]
@@ -307,7 +310,7 @@ std::vector<int64> GMAP::Init_new_map_points()
                         Anchor.n_kf_matched = 2;
                         Anchor.n_tries_matchs = 0;                           
                         Gmap.AnchorsDATA.push_back(Anchor);
-
+                        //cout << "x"; 
                         int64 idx_anchor = Gmap.AnchorsDATA.size()-1;
 
                         Gmap.KeyFDATA[idx_current_KF].Idx_Matched_points.push_back(idx_anchor);

@@ -10,7 +10,7 @@ void EKF::Visual_update_With_val_e()
     double v = sqrt(x(10)*x(10) + x(11)*x(11)); // current velocity over the x-y plane    
 
     if (v > PAR.Visual_update_min_vel_for_update_feats) 
-    {   
+     {   
         // 1-Point RANSAC hypothesis and selection of low-innovation inliers
         std::vector<int> z_li_f;
         std::vector<int> z_li_a;
@@ -30,7 +30,7 @@ void EKF::Visual_update_With_val_e()
         Visual_update_One_Point_ransac_e(z_hi_f,z_hi_a);
 
         //cout << "hi: "<< z_hi_f.size() << " " << z_hi_a.size() << endl;
-    }
+   }
 
 
 }
@@ -90,16 +90,18 @@ int select_random_match(std::vector<FEAT> &FeatsDATA, std::vector<FEAT> &Anchors
 // Rodrigo M. 2022
 void FeatPrediction(arma::vec &x, std::vector<FEAT> &FeatsDATA, std::vector<FEAT> &AnchorsDATA, int type, int idx, CAM &camera_parameters, parameters &par, arma::mat &Rr2c,arma::vec::fixed<3> &t_c2r, arma::vec::fixed<2> &hi, arma::vec::fixed<2> &zi, arma::mat::fixed<2,2> &Ri, arma::mat &Hi )
 {                        
-            int x_len = x.size();
-            int idx_i = FeatsDATA[idx].idx_i_state;
-            int idx_f = FeatsDATA[idx].idx_f_state;
-            arma::vec::fixed<3> pxyz = x.subvec(idx_i,idx_f);            
-            arma::mat::fixed<2,13> duv_dx;
-            arma::mat::fixed<2,3> duv_dy;              
-            Jac_e_uv_XYZ(pxyz,x,camera_parameters,Rr2c,t_c2r,duv_dx,duv_dy,par.Visual_update_attitude_update);            
-            Hi.zeros(2,x_len);
+            
             if(type == 0) // for features
-            { 
+            {   
+                int x_len = x.size();
+                int idx_i = FeatsDATA[idx].idx_i_state;
+                int idx_f = FeatsDATA[idx].idx_f_state;
+                arma::vec::fixed<3> pxyz = x.subvec(idx_i,idx_f);            
+                arma::mat::fixed<2,13> duv_dx;
+                arma::mat::fixed<2,3> duv_dy;              
+                Jac_e_uv_XYZ(pxyz,x,camera_parameters,Rr2c,t_c2r,duv_dx,duv_dy,par.Visual_update_attitude_update);            
+                Hi.zeros(2,x_len); 
+
                 Hi(arma::span(0,1),arma::span(0,12)) = duv_dx;
                 Hi(arma::span(0,1),arma::span(idx_i,idx_f)) = duv_dy; 
                 FeatsDATA[idx].duv_dx = duv_dx;
@@ -114,7 +116,16 @@ void FeatPrediction(arma::vec &x, std::vector<FEAT> &FeatsDATA, std::vector<FEAT
 
             }
             else if(type == 1)
-            {
+            {   
+                int x_len = x.size();
+                //int idx_i = FeatsDATA[idx].idx_i_state;
+                //int idx_f = FeatsDATA[idx].idx_f_state;
+                arma::vec::fixed<3> pxyz = AnchorsDATA[idx].AnchorState;            
+                arma::mat::fixed<2,13> duv_dx;
+                arma::mat::fixed<2,3> duv_dy;              
+                Jac_e_uv_XYZ(pxyz,x,camera_parameters,Rr2c,t_c2r,duv_dx,duv_dy,par.Visual_update_attitude_update);            
+                Hi.zeros(2,x_len);
+
                 Hi(arma::span(0,1),arma::span(0,12)) = duv_dx;
                 AnchorsDATA[idx].duv_dx = duv_dx;
                 hi(0) = AnchorsDATA[idx].PredictedPoint.x;

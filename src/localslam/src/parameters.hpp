@@ -108,12 +108,16 @@ struct parameters
     int Select_KeyFrames_min_n_matches;
     double Select_KeyFrames_min_ratio_distance_depth;
 
-    // position update from global slam
+    // position update from bundle adjustment (global slam)
     bool GS_xy_update;
     bool GS_z_update;
     double GS_xy_update_max_delta;
-    double GS_z_update_max_delta; 
- 
+    double GS_z_update_max_delta;
+    // position update from close loop (global slam)
+    bool CL_xy_update;
+    bool CL_z_update;
+    double CL_xy_update_max_delta;
+    double CL_z_update_max_delta;
 
 } ;   
 

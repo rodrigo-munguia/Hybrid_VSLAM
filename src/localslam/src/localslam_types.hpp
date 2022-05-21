@@ -118,6 +118,14 @@ struct LOCALSLAM_DATA
 
 };
 
+struct POS_UPDATE
+{
+    bool pos_update_available;
+    arma::vec::fixed<3> delta_pos_update;
+    string type;
+
+};
+
     
 
 

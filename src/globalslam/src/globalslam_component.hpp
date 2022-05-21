@@ -24,6 +24,7 @@
 #include "globalslam_types.hpp"
 #include <mutex>
 #include "gmap.hpp"
+#include "cloop.hpp"
 
 
 
@@ -45,15 +46,17 @@ private:
   
   // declare subscribers
   rclcpp::Subscription<interfaces::msg::Kf>::SharedPtr sub_Kf_;
+  rclcpp::Subscription<interfaces::msg::Kf>::SharedPtr sub_Kf_cl_;
         
   // declare callbacks
   void Kf_callback(const interfaces::msg::Kf & msg) const;
+  void Kf_cl_callback(const interfaces::msg::Kf & msg) ;
   
   // declare Services
 
   // declare clients
   rclcpp::Client<interfaces::srv::LSposUpdate>::SharedPtr client_local_slam_pos_update_;
-  void Send_local_slam_pos_update(arma::vec::fixed<3> &Delta_kf_n);
+  void Send_local_slam_pos_update(arma::vec::fixed<3> &Delta_kf_n, std::string type);
   
   // declare publishers
   rclcpp::Publisher<interfaces::msg::Gmap>::SharedPtr pub_gmap_data_;
@@ -64,21 +67,35 @@ private:
   void setParameters();
 
   thread gmap_loop_;
+  thread cloop_loop_;
   void GMAP_LOOP();
+  bool gmap_updated;
+
+  void CLOOP_LOOP();
+  bool gmap_thread_loop_run;
+  bool cloop_thread_loop_run;
   
   // variables
   GLOBAL_MAP Gmap; // Global map structure
 
 
   std::vector<KEYFRAME> Kf_buffer;
-  bool gmap_thread_loop_run;
   
+  KEYFRAME kf_cl_last;
+  bool new_kf_cl;
+
   // parameters
   parameters PAR;
   
   // mutex
   std::mutex mutex_rx_kf;
+  std::mutex mutex_rx_kf_cl;
   std::mutex mutex_get_gm;
+  std::mutex mutex_send_pos;
+
+  bool loop_closed_flag;
+
+  
 
 
   

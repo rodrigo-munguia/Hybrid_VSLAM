@@ -90,6 +90,7 @@ void EKF::init_euler_system_statet(DATA &dat)
   AnchorsDATA.clear();
   NewKF_available = false;
   NewRobotState_available = false;
+  New_KF_cl = false;
 
  
  
@@ -166,6 +167,7 @@ void EKF::init_quat_system_state(DATA &dat)
   AnchorsDATA.clear();
   NewKF_available = false;
   NewRobotState_available = false;
+  New_KF_cl = false;
 
   cout << "lslam state initialized" << endl;
   cout << x << endl;
@@ -347,23 +349,27 @@ void EKF::ekf_step(DATA &dat)
 }
 
 //----------------------------------------------------
-void EKF::Update_pos_with_delta(arma::vec::fixed<3> delta_pos)
-{
-  //cout << "delta_pos update request: " << delta_pos << endl;
-  double innov_xy = sqrt(pow(delta_pos[0],2) + pow(delta_pos[1],2)); 
+void EKF::Update_pos_with_delta(arma::vec::fixed<3> delta_pos, string type)
+{ 
   
-  // update robot position
-  if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
-  {
-    x[7] = x[7] + delta_pos[0];
-    x[8] = x[8] + delta_pos[1];
-  }
-  if(PAR.GS_z_update == true && delta_pos[2] < PAR.GS_z_update_max_delta)
-  {  
-    x[9] = x[9] + delta_pos[2];
-  }  
+  double innov_xy = sqrt(pow(delta_pos[0],2) + pow(delta_pos[1],2)); 
 
-   for(int i = 0; i< FeatsDATA.size();i++ )
+  if (type == "bundle_adjustment")
+  { 
+     //--------------------------------------------------------------
+    //cout << "EKF-SLAM -> BA update" << endl;
+    // update robot position
+    if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
+    {
+      x[7] = x[7] + delta_pos[0];
+      x[8] = x[8] + delta_pos[1];
+    }
+    if(PAR.GS_z_update == true && delta_pos[2] < PAR.GS_z_update_max_delta)
+    {  
+      x[9] = x[9] + delta_pos[2];
+    }  
+    // update Features position
+    for(int i = 0; i< FeatsDATA.size();i++ )
     {
       int idx_i = FeatsDATA[i].idx_i_state;
       if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
@@ -376,7 +382,7 @@ void EKF::Update_pos_with_delta(arma::vec::fixed<3> delta_pos)
         x[idx_i+2] = x[idx_i+2] + delta_pos[2];
       }  
     }
-
+    // Updates Anchors position
     for(int i = 0; i< AnchorsDATA.size();i++)
     { 
       if(PAR.GS_xy_update == true && innov_xy < PAR.GS_xy_update_max_delta )
@@ -388,7 +394,60 @@ void EKF::Update_pos_with_delta(arma::vec::fixed<3> delta_pos)
       { 
         AnchorsDATA[i].AnchorState[2]  =  AnchorsDATA[i].AnchorState[2] + delta_pos[2];
       }  
-    }     
+    }
+    //---------------------------------------------------------------------     
+  }
+  else if(type == "close_loop")
+  {
+    //cout << "EKF-SLAM -> CL update" << endl;
+    // update robot position
+    //cout << "ekf deltapos : " << delta_pos << endl; 
+   // cout << "pos b: " << x[7] << " " << x[8] << " " << x[9] << endl;
+    if(PAR.CL_xy_update == true && innov_xy < PAR.CL_xy_update_max_delta )
+    {
+      x[7] = x[7] + delta_pos[0];
+      x[8] = x[8] + delta_pos[1];
+    }
+    if(PAR.CL_z_update == true && delta_pos[2] < PAR.CL_z_update_max_delta)
+    {  
+      x[9] = x[9] + delta_pos[2];
+    }
+    //cout << "pos a: " << x[7] << " " << x[8] << " " << x[9] << endl;  
+    // update Features position
+    for(int i = 0; i< FeatsDATA.size();i++ )
+    {
+      int idx_i = FeatsDATA[i].idx_i_state;
+      if(PAR.CL_xy_update == true && innov_xy < PAR.CL_xy_update_max_delta )
+      {
+        x[idx_i] = x[idx_i] + delta_pos[0];
+        x[idx_i+1] = x[idx_i+1] + delta_pos[1];
+      }
+      if(PAR.CL_z_update == true && delta_pos[2] < PAR.CL_z_update_max_delta)
+      {   
+        x[idx_i+2] = x[idx_i+2] + delta_pos[2];
+      }  
+    }
+    // Updates Anchors position
+    for(int i = 0; i< AnchorsDATA.size();i++)
+    { 
+      if(PAR.CL_xy_update == true && innov_xy < PAR.CL_xy_update_max_delta )
+      {
+        AnchorsDATA[i].AnchorState[0]  =  AnchorsDATA[i].AnchorState[0] + delta_pos[0];
+        AnchorsDATA[i].AnchorState[1]  =  AnchorsDATA[i].AnchorState[1] + delta_pos[1];
+      }
+      if(PAR.CL_z_update == true && delta_pos[2] < PAR.CL_z_update_max_delta)
+      { 
+        AnchorsDATA[i].AnchorState[2]  =  AnchorsDATA[i].AnchorState[2] + delta_pos[2];
+      }  
+    }
+    //---------------------------------------------------------------------    
+  }
+
+
+  //cout << "delta_pos update request: " << delta_pos << endl;
+  
+  
+  
 
 }
 
@@ -520,4 +579,18 @@ bool EKF::get_KeyFrame(KEYFRAME &KF)
   }
 
 }
+//--------------------------------------------------------------
+bool EKF::get_KeyFrameCL(KEYFRAME &KF)
+{
+  if(New_KF_cl == true)
+  {
+    KF = KF_cl;
+    New_KF_cl = false;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 
+}

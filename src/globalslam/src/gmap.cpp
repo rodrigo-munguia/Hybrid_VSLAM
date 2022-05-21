@@ -18,6 +18,13 @@ void GMAP::Get_GlobalMap(GLOBAL_MAP &Gmap_c)
 {
    Gmap_c = Gmap;
 }
+//------------------------------------------
+// Set global map
+// Rodrigo M. 20222
+void GMAP::Set_GlobalMap(GLOBAL_MAP &Gmap_c)
+{
+  Gmap = Gmap_c;
+}
 
 //------------------------------------------
 arma::vec::fixed<3>  GMAP::Get_delta_pos()
@@ -26,8 +33,9 @@ arma::vec::fixed<3>  GMAP::Get_delta_pos()
 }
 
 
+
 //------------------------------------------
-// Perform a full global map step
+// Perform a full global map update step
 // Rodrigo M. 20222
 void GMAP::Update()
 {
@@ -50,7 +58,9 @@ void GMAP::Update()
             Match_Gmap_points_into_new_KF();
             
             //------------- Update the visibility graph for taking into account the new keyframe
+            
             Update_Visibility_Graph_with_new_KF();
+           
          
         if (Gmap.KeyFDATA.size() > 1)        
         { 
@@ -67,7 +77,11 @@ void GMAP::Update()
                 Match_New_points_into_previous_KF(idx_new_points, idx_kf_m, idx_pt_m );                
 
                 //-------------- Update the visibility graph for taking into account the new map points
+                //cout << " Before: " << endl;
+                //cout << Gmap.Vgraph << endl;
                 Update_Visibility_Graph_with_matches_of_new_points(idx_new_points,idx_kf_m, idx_pt_m );
+                // cout << " After: " << endl;
+                //cout << Gmap.Vgraph << endl;
                 //( solve first row/column of zeros)
 
                 //cout << Gmap.Vgraph << endl;       
@@ -86,12 +100,24 @@ void GMAP::Update()
            
            // Update visibility graph           
            Update_Visibility_Graph_with_deleted_points(kf_vg_info);
+           
            //cout << Gmap.Vgraph << endl;
            
            // perform (local) bundle adjustment over the global map
            Bundle_adjustment(); 
 
            // Update matches and visibility graph  
+           /*
+           cout << endl;
+           for (int i = 0; i < Gmap.Vgraph.n_rows ; i++ )
+            {
+                for (int j = 0; j < Gmap.Vgraph.n_rows ; j++ )
+                    {
+                        cout << (int)Gmap.Vgraph.at(i,j) << " ";
+                    }
+                    cout << endl;    
+                }
+           */     
            int q = 10;
         }
 

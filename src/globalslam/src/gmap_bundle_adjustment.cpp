@@ -53,13 +53,58 @@ void GMAP::Bundle_adjustment()
     
     std::vector<int64> idx_points;
     
-    idx_Fixed_kf_ref = Gmap.KeyFDATA.size() - PAR.BA_max_n_kf_optimized;
-    if( idx_Fixed_kf_ref < 0)idx_Fixed_kf_ref = 0;
-    
-    //Keyframes poses
-    for (int i = idx_Fixed_kf_ref; i < Gmap.KeyFDATA.size(); i++)
-    {
-        arma::mat::fixed<3,3> Rc2n = Gmap.KeyFDATA[i].Rn2c.t();
+    //------ define kf (and associated points) to be optimized
+        
+        
+
+       // idx_kf_min_ref_for_search_matches = Gmap.KeyFDATA.size() - PAR.BA_max_n_kf_optimized;    
+       // if( idx_kf_min_ref_for_search_matches < 0)idx_kf_min_ref_for_search_matches = 0;
+        
+        std::vector<int> idx_kf_to_optimize;
+        int n_kf_to_optimize = 0;
+        if(Gmap.KeyFDATA.size() < PAR.BA_max_n_kf_optimized)
+        {
+          n_kf_to_optimize = Gmap.KeyFDATA.size();
+        }
+        else
+        {
+          n_kf_to_optimize = PAR.BA_max_n_kf_optimized;
+        }
+        
+       
+        // consider at least the n-last keyframes to optimize
+        // the difference between BA_max_n_kf_optimized and BA_min_n_latest_kf_to_optimize is the number of "oldest" kf
+        // that will be tried to be included for optimization
+        
+        // to ensure that PAR.BA_min_n_latest_kf_to_optimize is not larger than PAR.BA_min_n_latest_kf_to_optimize
+        if (PAR.BA_min_n_latest_kf_to_optimize > PAR.BA_max_n_kf_optimized)PAR.BA_min_n_latest_kf_to_optimize = PAR.BA_max_n_kf_optimized;
+        
+        int n_latest_kf = PAR.BA_min_n_latest_kf_to_optimize ;
+        
+        if (n_latest_kf < PAR.BA_max_n_kf_optimized)
+        {
+          std::vector<int> vl_kf = Get_n_oldest_visually_linked_kf(Gmap.KeyFDATA.size()-1,PAR.BA_max_n_kf_optimized-(n_latest_kf+1), 2 );     
+          idx_kf_to_optimize = vl_kf;
+        } 
+             
+        
+        int idx_kf_t = Gmap.KeyFDATA.size()-1;
+        while(idx_kf_to_optimize.size() < n_kf_to_optimize )
+        {      
+          if( find(idx_kf_to_optimize.begin(), idx_kf_to_optimize.end(), idx_kf_t) == idx_kf_to_optimize.end() )
+          {
+            idx_kf_to_optimize.push_back(idx_kf_t);
+          }   
+          idx_kf_t--;
+        }
+        sort(idx_kf_to_optimize.begin(), idx_kf_to_optimize.end());
+    //----------------------------------------------------------------------------------------
+
+   // for (int i = idx_kf_min_ref_for_search_matches; i < Gmap.KeyFDATA.size(); i++)
+    for (int k = 0 ; k < idx_kf_to_optimize.size(); k++)
+    {   
+        int idx_kf = idx_kf_to_optimize[k];
+        arma::mat::fixed<3,3> Rc2n = Gmap.KeyFDATA[idx_kf].Rn2c.t();
 
         gtsam::Rot3 R(
             Rc2n.at(0,0),
@@ -74,9 +119,9 @@ void GMAP::Bundle_adjustment()
         );
         
         gtsam::Point3 t;
-        t(0) = Gmap.KeyFDATA[i].t_c2n[0];
-        t(1) = Gmap.KeyFDATA[i].t_c2n[1];
-        t(2) = Gmap.KeyFDATA[i].t_c2n[2];
+        t(0) = Gmap.KeyFDATA[idx_kf].t_c2n[0];
+        t(1) = Gmap.KeyFDATA[idx_kf].t_c2n[1];
+        t(2) = Gmap.KeyFDATA[idx_kf].t_c2n[2];
 
         gtsam::Pose3 pose(R,t);
 
@@ -85,13 +130,19 @@ void GMAP::Bundle_adjustment()
         double sigma_xy;
         double sigma_z;
         
-        if ((i == 0)||(i==1)) 
+        if ((k == 0)) 
          {   
           // Add a prior on pose x0. This indirectly specifies where the origin is.            
+          sigma_att = PAR.BA_sigma_kf_att/10000;
+          sigma_xy = PAR.BA_sigma_kf_xy/10000;
+          sigma_z = PAR.BA_sigma_kf_z/10000;
+         } 
+         else if(k==1)
+         {
           sigma_att = PAR.BA_sigma_kf_att/10;
           sigma_xy = PAR.BA_sigma_kf_xy/10;
           sigma_z = PAR.BA_sigma_kf_z/10;
-         }
+         }         
          else
          { 
           sigma_att = PAR.BA_sigma_kf_att;
@@ -100,17 +151,17 @@ void GMAP::Bundle_adjustment()
          } 
             auto pose_noise = gtsam::noiseModel::Diagonal::Sigmas((gtsam::Vector(6) << sigma_att,sigma_att,sigma_att,sigma_xy,sigma_xy,sigma_z).finished());
             //graph.emplace_shared<gtsam::PriorFactor<gtsam::Pose3> >(gtsam::Symbol('x', 0), pose, pose_noise); // add directly to graph
-            graph.addPrior(gtsam::Symbol('x', i), pose, pose_noise);  // add directly to graph
+            graph.addPrior(gtsam::Symbol('x', idx_kf), pose, pose_noise);  // add directly to graph
        // }        
         
-        initial.insert(gtsam::Symbol('x', i), pose);
+        initial.insert(gtsam::Symbol('x', idx_kf), pose);
 
         // ------------  add visual measurements
-        for ( int j = 0; j < Gmap.KeyFDATA[i].Idx_Matched_points.size(); j++)
+        for ( int j = 0; j < Gmap.KeyFDATA[idx_kf].Idx_Matched_points.size(); j++)
         {
-          int64 idx_pt = Gmap.KeyFDATA[i].Idx_Matched_points[j];
+          int64 idx_pt = Gmap.KeyFDATA[idx_kf].Idx_Matched_points[j];
           
-         cv::Point2f ud_d = Gmap.KeyFDATA[i].UV_Matched_points[j];
+         cv::Point2f ud_d = Gmap.KeyFDATA[idx_kf].UV_Matched_points[j];
 
           cv::Point2f uv_u;
           uv_u = Undistort_a_point( ud_d,cam_parameters,1 );  // undistort point
@@ -120,7 +171,7 @@ void GMAP::Bundle_adjustment()
           pt(1) =  uv_u.y;
           
           //graph.emplace_shared<gtsam::GeneralSFMFactor2<gtsam::Cal3_S2>>(pt, measurement_noise, gtsam::Symbol('x', idx_kf), gtsam::Symbol('l', i), gtsam::Symbol('K', 0));
-          graph.emplace_shared<gtsam::GenericProjectionFactor<gtsam::Pose3, gtsam::Point3, gtsam::Cal3_S2> >(pt, measurement_noise, gtsam::Symbol('x', i), gtsam::Symbol('l', idx_pt), K);
+          graph.emplace_shared<gtsam::GenericProjectionFactor<gtsam::Pose3, gtsam::Point3, gtsam::Cal3_S2> >(pt, measurement_noise, gtsam::Symbol('x', idx_kf), gtsam::Symbol('l', idx_pt), K);
           
          // cout << "add visual measurement, kf: " << i << " with point: " << idx_pt << endl;
           auto it = std::find(idx_points.begin(), idx_points.end(), idx_pt);
@@ -133,9 +184,11 @@ void GMAP::Bundle_adjustment()
 
         } // for ( int j = 0; j < Gmap.KeyFDATA[i].Idx_Matched_points.size(); j++)
         //--------------------------------------------------------------
+       
+      // cout << "Kf: " << idx_kf << " n matches: " << Gmap.KeyFDATA[idx_kf].Idx_Matched_points.size()  << endl;
 
     } // for (int i = idx_Fixed_kf_ref; i < Gmap.KeyFDATA.size(); i++)
-
+    //cout << endl;
     //--- add prior of point positions
      bool init_prior = false;
     for( int i = 0; i < idx_points.size(); i++)
@@ -164,61 +217,89 @@ void GMAP::Bundle_adjustment()
   //gtsam::Values result = gtsam::DoglegOptimizer(graph, initial).optimize();
   gtsam::Values result = gtsam::LevenbergMarquardtOptimizer(graph, initial).optimize();
   //result.print("Final results:\n");
+  
+  /*
   cout << "---- bundle adjustment results ---------------- " << endl;
   cout << "initial error = " << graph.error(initial) << endl;
   cout << "final error = " << graph.error(result) << endl;
-  
-  // results are Eigen matrix
-  //Eigen::Matrix<double, 3, 3> R;
-  //Eigen::Matrix<double, 3, 1> t;
-  // result.at<gtsam::Pose3>(gtsam::Symbol('x', i)).rotation().matrix();
   cout << "number of kf: " << Gmap.KeyFDATA.size() << endl;
   cout << "last kf pose:           " <<Gmap.KeyFDATA[Gmap.KeyFDATA.size()-1].t_c2n.t() << endl;
-  cout << "last kf optimized pose: " <<result.at<gtsam::Pose3>(gtsam::Symbol('x', Gmap.KeyFDATA.size()-1)).translation().transpose() << endl;
-
+  //cout << "last kf optimized pose: " <<result.at<gtsam::Pose3>(gtsam::Symbol('x', Gmap.KeyFDATA.size()-1)).translation().transpose() << endl;
+  cout << "last kf optimized pose: " <<result.at<gtsam::Pose3>(gtsam::Symbol('x', idx_kf_to_optimize[idx_kf_to_optimize.size()-1]) ).translation().transpose() << endl;
+ */
   
   // --------------- Update results to the global map------------------------------------------------------
+    
+    //--- check for large innovations
     int idx_last_kf = Gmap.KeyFDATA.size()-1;
-    for (int i = idx_Fixed_kf_ref; i < Gmap.KeyFDATA.size(); i++)
-    {
+    bool f_valid_update = true;
+    for (int k = 0 ; k < idx_kf_to_optimize.size(); k++)
+    {   
+      int idx_kf = idx_kf_to_optimize[k];
+      Eigen::Matrix<double, 3, 3> R;
+      Eigen::Matrix<double, 3, 1> t_o;            
+      R = result.at<gtsam::Pose3>(gtsam::Symbol('x', idx_kf)).rotation().matrix();
+      t_o = result.at<gtsam::Pose3>(gtsam::Symbol('x', idx_kf)).translation();      
+      arma::mat R_arma_t = arma::mat(R.data(), R.rows(), R.cols(),false, false);
+      arma::mat::fixed<3,3> R_o = R_arma_t.t();
+      arma::vec::fixed<3> D_kf_n;      
+      D_kf_n[0] = t_o[0] - Gmap.KeyFDATA[idx_kf].t_c2n[0];
+      D_kf_n[1] = t_o[1] - Gmap.KeyFDATA[idx_kf].t_c2n[1];
+      D_kf_n[2] = t_o[2] - Gmap.KeyFDATA[idx_kf].t_c2n[2];         
+      //double Delta_norm = arma::norm(D_kf_n, 2);
+      double Delta_norm = sqrt(pow(D_kf_n[0],2) + pow(D_kf_n[1],2)); 
+      if (Delta_norm > PAR.BA_max_delta_kf_pos)
+      {
+        f_valid_update = false;
+        cout << "Delta_norm for n-kf optimized too large!! " << endl ;
+      }      
+    }    
+    //-----------------------------------
+
+
+
+    //for (int i = idx_kf_min_ref_for_search_matches; i < Gmap.KeyFDATA.size(); i++)
+    for (int k = 0 ; k < idx_kf_to_optimize.size(); k++)
+    {   
+      int idx_kf = idx_kf_to_optimize[k];   
 
       Eigen::Matrix<double, 3, 3> R;
       Eigen::Matrix<double, 3, 1> t_o;
             
-      R = result.at<gtsam::Pose3>(gtsam::Symbol('x', i)).rotation().matrix();
-      t_o = result.at<gtsam::Pose3>(gtsam::Symbol('x', i)).translation();
+      R = result.at<gtsam::Pose3>(gtsam::Symbol('x', idx_kf)).rotation().matrix();
+      t_o = result.at<gtsam::Pose3>(gtsam::Symbol('x', idx_kf)).translation();
       
       arma::mat R_arma_t = arma::mat(R.data(), R.rows(), R.cols(),false, false);
       arma::mat::fixed<3,3> R_o = R_arma_t.t();
       
-      if(i == idx_last_kf)
+      if(idx_kf == idx_last_kf)
       {
         Delta_kf_n[0] = t_o[0] - Gmap.KeyFDATA[idx_last_kf].t_c2n[0];
         Delta_kf_n[1] = t_o[1] - Gmap.KeyFDATA[idx_last_kf].t_c2n[1];
         Delta_kf_n[2] = t_o[2] - Gmap.KeyFDATA[idx_last_kf].t_c2n[2];
       }  
-
+            
       /*
       cout << R_o << endl;
       cout << Gmap.KeyFDATA[i].Rn2c << endl;
       cout << t_o << endl;
       cout << Gmap.KeyFDATA[i].t_c2n << endl;
       */
-      if(PAR.BA_update_kf_att == true)
+      if(PAR.BA_update_kf_att == true && f_valid_update == true)
       {
-        Gmap.KeyFDATA[i].Rn2c = R_o;
+        Gmap.KeyFDATA[idx_kf].Rn2c = R_o;
       }  
       
-      if(PAR.BA_update_kf_pos == true)
+      if(PAR.BA_update_kf_pos == true && f_valid_update == true)
       {
-        Gmap.KeyFDATA[i].t_c2n[0] = t_o[0];
-        Gmap.KeyFDATA[i].t_c2n[1] = t_o[1];
-        Gmap.KeyFDATA[i].t_c2n[2] = t_o[2];
+        Gmap.KeyFDATA[idx_kf].t_c2n[0] = t_o[0];
+        Gmap.KeyFDATA[idx_kf].t_c2n[1] = t_o[1];
+        Gmap.KeyFDATA[idx_kf].t_c2n[2] = t_o[2];
       }         
      
     }  
 
-  if(PAR.BA_update_map== true)
+  if(PAR.BA_update_map== true && f_valid_update == true)
   {
     for( int i = 0; i < idx_points.size(); i++)
     {

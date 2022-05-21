@@ -25,7 +25,9 @@ class GMAP
            cam_parameters.fc[1] = PAR.Mono_cam_fc_v;
            cam_parameters.alpha_c = PAR.Mono_cam_alpha_c;
 
-            idx_Fixed_kf_ref = 0;
+            
+           
+            Gmap.idx_ref_pose_slam = 0;
         }
         
          
@@ -41,7 +43,7 @@ class GMAP
 
         std::vector<KEYFRAME> Kf_buffer; // for temporaly storing Keyframes
 
-        int idx_Fixed_kf_ref; // index of the i-(oldest) keyFrame that will be considered "fixed"
+        //int idx_kf_min_ref_for_search_matches;        
         
         
         //--- for initializing new map points
@@ -63,7 +65,8 @@ class GMAP
         void Update_Visibility_Graph_with_new_KF();
         void Update_Visibility_Graph_with_matches_of_new_points(std::vector<int64> &idx_new_points, std::vector<int> &idx_kf_m, std::vector<int64> &idx_pt_m );         
         void Update_Visibility_Graph_with_deleted_points(std::vector<std::vector<int>> &kf_vg_info);
-        std::vector<int> Get_idx_visually_linked_to_KF(int idx_KF);       
+        std::vector<int> Get_idx_visually_linked_to_KF(int idx_KF);
+        std::vector<int> Get_n_oldest_visually_linked_kf(int idx_kf, int n_oldest, int min_v_strength ) ;      
         void  Check_visibiliy_graph(int &idx_direct_link, int &idx_indirect_link );
 
     
@@ -74,6 +77,7 @@ class GMAP
         void  Update();
 
         void Get_GlobalMap(GLOBAL_MAP &Gmap_c);
+        void Set_GlobalMap(GLOBAL_MAP &Gmap_c);
 
         arma::vec::fixed<3>  Get_delta_pos();
 

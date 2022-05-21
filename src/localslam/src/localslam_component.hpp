@@ -74,6 +74,7 @@ private:
   // declare publishers
   rclcpp::Publisher<interfaces::msg::Lslam>::SharedPtr pub_lslam_data_;
   rclcpp::Publisher<interfaces::msg::Kf>::SharedPtr pub_kf_;
+  rclcpp::Publisher<interfaces::msg::Kf>::SharedPtr pub_kf_cl_;
   rclcpp::Publisher<interfaces::msg::Robotstate>::SharedPtr pub_robot_state_;
   
   //------
@@ -96,19 +97,20 @@ private:
   std::mutex mutex_get_state;
   std::mutex mutex_init_system;
   std::mutex mutex_pos_update;
-  bool pos_update_available;
-  arma::vec::fixed<3> delta_pos_update;
-
+  
+    
+  
   bool re_init_sys;
   bool new_slam_state_flag;
   
-
+  POS_UPDATE pos_update; 
   
   // parameters
   parameters PAR;
   void setParameters();
 
   void pub_kf(KEYFRAME &KF);
+  void pub_kf_cl(KEYFRAME &KF);
   void pub_lslam_Data(LOCALSLAM_DATA &lslam_data);
   void pub_robot_state(arma::vec::fixed<13> &x_r);
 

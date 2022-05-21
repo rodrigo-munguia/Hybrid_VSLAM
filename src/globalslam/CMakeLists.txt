@@ -57,7 +57,17 @@ src/gmap_init_new_map_points.cpp
 src/gmap_visibility_graph_functions.cpp
 src/gmap_visual_match.cpp
 src/gmap_delete_points.cpp
-src/gmap_bundle_adjustment.cpp)
+src/gmap_bundle_adjustment.cpp
+src/cloop.cpp
+src/cloop_visibility_graph_functions.cpp
+src/cloop_visual_match.cpp
+src/cloop_get_pos.cpp
+../common/Transforms/Euler_to_Ra2b.cpp
+src/cloop_update_gmap.cpp
+src/cloop_pose_slam.cpp
+src/cloop_fuse_points.cpp
+src/cloop_update_gmap_with_new_matches.cpp
+src/cloop_bundle_adjustment.cpp)
 
 add_library(globalslam_component SHARED ${SOURCE_FILES} )
 

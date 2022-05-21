@@ -22,7 +22,9 @@ void Gslam::setParameters()
    this->declare_parameter<int>("VM_max_inov_error",20);
    this->declare_parameter<int>("VG_img_search_margin",15);
    this->declare_parameter<int>("Delete_min_kf_matched_for_keep_anchor",3);
-   this->declare_parameter<int>("BA_max_n_kf_optimized",5);
+   this->declare_parameter<int>("BA_max_n_previous_kf_for_search_matches",20);
+   this->declare_parameter<int>("BA_max_n_kf_optimized",7);
+   this->declare_parameter<int>("BA_min_n_latest_kf_to_optimize",4);
    this->declare_parameter<double>("BA_sigma_uv",1.0);
    this->declare_parameter<double>("BA_sigma_kf_att",0.01);
    this->declare_parameter<double>("BA_sigma_kf_xy",0.1); 
@@ -31,6 +33,17 @@ void Gslam::setParameters()
    this->declare_parameter<bool>("BA_update_kf_pos",true);
    this->declare_parameter<bool>("BA_update_kf_att",true);
    this->declare_parameter<bool>("BA_update_map",true);
+   this->declare_parameter<double>("BA_max_delta_kf_pos",0.2);
+   this->declare_parameter<int>("CL_min_n_not_vl_kf",2);
+   this->declare_parameter<int>("CL_min_n_matches",10);
+   this->declare_parameter<double>("CL_min_mean_reprojection_error",25.0);
+   this->declare_parameter<double>("CL_odo_sigma_kf_att",0.0001);
+   this->declare_parameter<double>("CL_odo_sigma_kf_xy",0.05);
+   this->declare_parameter<double>("CL_odo_sigma_kf_z",0.05);
+   this->declare_parameter<double>("CL_clo_sigma_kf_att",0.00001);
+   this->declare_parameter<double>("CL_clo_sigma_kf_xy",0.005);
+   this->declare_parameter<double>("CL_clo_sigma_kf_z",0.005);
+   this->declare_parameter<bool>("CL_update_z",true);
 
    
       
@@ -53,7 +66,9 @@ void Gslam::setParameters()
    this->get_parameter("VM_max_inov_error",PAR.VM_max_inov_error);
    this->get_parameter("VG_img_search_margin",PAR.VG_img_search_margin);
    this->get_parameter("Delete_min_kf_matched_for_keep_anchor",PAR.Delete_min_kf_matched_for_keep_anchor);
+   this->get_parameter("BA_max_n_previous_kf_for_search_matches",PAR.BA_max_n_previous_kf_for_search_matches);
    this->get_parameter("BA_max_n_kf_optimized",PAR.BA_max_n_kf_optimized);
+   this->get_parameter("BA_min_n_latest_kf_to_optimize",PAR.BA_min_n_latest_kf_to_optimize);
    this->get_parameter("BA_sigma_uv",PAR.BA_sigma_uv);    
    this->get_parameter("BA_sigma_kf_att",PAR.BA_sigma_kf_att);
    this->get_parameter("BA_sigma_kf_xy",PAR.BA_sigma_kf_xy);
@@ -62,6 +77,25 @@ void Gslam::setParameters()
    this->get_parameter("BA_update_kf_pos",PAR.BA_update_kf_pos);
    this->get_parameter("BA_update_kf_att",PAR.BA_update_kf_att);
    this->get_parameter("BA_update_map",PAR.BA_update_map);
+   this->get_parameter("BA_max_delta_kf_pos",PAR.BA_max_delta_kf_pos);
+   this->get_parameter("CL_min_n_not_vl_kf",PAR.CL_min_n_not_vl_kf);
+   this->get_parameter("CL_min_n_matches",PAR.CL_min_n_matches);
+   this->get_parameter("CL_min_mean_reprojection_error",PAR.CL_min_mean_reprojection_error);
+   this->get_parameter("CL_odo_sigma_kf_att",PAR.CL_odo_sigma_kf_att);
+   this->get_parameter("CL_odo_sigma_kf_xy",PAR.CL_odo_sigma_kf_xy);
+   this->get_parameter("CL_odo_sigma_kf_z",PAR.CL_odo_sigma_kf_z);
+   this->get_parameter("CL_clo_sigma_kf_att",PAR.CL_clo_sigma_kf_att);
+   this->get_parameter("CL_clo_sigma_kf_xy",PAR.CL_clo_sigma_kf_xy);
+   this->get_parameter("CL_clo_sigma_kf_z",PAR.CL_clo_sigma_kf_z);
+   this->get_parameter("CL_update_z",PAR.CL_update_z);
+
+  
+  
+   
+  
+  
+   
+   
 
 
 }

@@ -296,9 +296,23 @@ void EKF::Visual_match_SelectKeyFrames(FRAME *frame, int n_m_points,arma::vec::f
            NewKF_available = true; 
 
         }
+        else
+        {
+          if((n_m_points > PAR.Select_KeyFrames_min_n_matches))
+          { 
+              // select an "intermediate" kf for the closing loop process
+            KF_cl.frame = frame->image;
+            KF_cl.r_N = r_N;
+            KF_cl.Rn2r = Rn2r;
+            KF_cl.t_c2r = t_c2r;
+            KF_cl.Rr2c = Rr2c;
+            New_KF_cl = true;
+          }  
+        }
 
-    if(init_kf ==false && (n_m_points > PAR.Select_KeyFrames_min_n_matches))
+    if(init_kf ==false && (n_m_points > PAR.Select_KeyFrames_min_n_matches)&&(ratio_dist_pd > PAR.Select_KeyFrames_min_ratio_distance_depth/3))
     {
+           
            KF_selected.frame = frame->image;
            KF_selected.r_N = r_N;
            KF_selected.Rn2r = Rn2r;
@@ -307,7 +321,7 @@ void EKF::Visual_match_SelectKeyFrames(FRAME *frame, int n_m_points,arma::vec::f
            count_f = 0;
            last_robot_pos = x.subvec(7,9);
            NewKF_available = true;
-
+           
            init_kf = true; 
 
     }           

@@ -76,6 +76,10 @@ void EKFslam::setParameters()
    this->declare_parameter<bool>("GS_z_update",true);
    this->declare_parameter<double>("GS_xy_update_max_delta",0.1);
    this->declare_parameter<double>("GS_z_update_max_delta",0.1);
+   this->declare_parameter<bool>("CL_xy_update",true);
+   this->declare_parameter<bool>("CL_z_update",true);
+   this->declare_parameter<double>("CL_xy_update_max_delta",5.0);
+   this->declare_parameter<double>("CL_z_update_max_delta",1.0);
    
       
   
@@ -154,6 +158,10 @@ void EKFslam::setParameters()
    this->get_parameter("GS_z_update",PAR.GS_z_update);
    this->get_parameter("GS_xy_update_max_delta",PAR.GS_xy_update_max_delta);
    this->get_parameter("GS_z_update_max_delta",PAR.GS_z_update_max_delta);
+   this->get_parameter("CL_xy_update",PAR.CL_xy_update);
+   this->get_parameter("CL_z_update",PAR.CL_z_update);
+   this->get_parameter("CL_xy_update_max_delta",PAR.CL_xy_update_max_delta);
+   this->get_parameter("CL_z_update_max_delta",PAR.CL_z_update_max_delta);
 
        
 

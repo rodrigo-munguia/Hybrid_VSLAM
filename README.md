@@ -5,7 +5,7 @@ Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
 R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210. https://doi.org/10.3390/s22010210
 
-![](figures/hvslam_f2.png)
+![](figures/hvslam_f3.png)
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
@@ -43,9 +43,10 @@ The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See ht
 ```
 foo@bar:~/home/Hybrid_VLSAM$ colcon build
 ```
-2.- Extract the sample dataset included in folder /Dataset_sample:
+2.- Reassemble and extract the sample dataset included in folder /Dataset_sample:
 ```
-foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ tar -xf 2022-1-22-16-6.tar.xz
+foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ cat dataset.* > dataset.tar.bz
+foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ tar -xf dataset.tar.bz
  ```
  3.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
  ```

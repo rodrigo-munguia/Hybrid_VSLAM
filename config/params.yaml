@@ -2,7 +2,8 @@
 # Dataset component parameters
 /data:
   ros__parameters:
-    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
+    #Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
+    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2021-8-4-12-54/    
     run_time: 86.0
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
     x_vel_run_time: 1.5
@@ -19,7 +20,7 @@
     Max_freq_output: 33
     Attitude_update: true
     Altitude_update: true
-    Speed_update: true
+    Speed_update: false
     Visual_update: true
     GPS_update: false
     # Robot initial conditions
@@ -38,13 +39,13 @@
     Range_sensor_max_range_operation: 6.0       
     # Prediction parameters
     Sigma_w: 0.1    
-    Sigma_a: 1.00   
+    Sigma_a: 6.00   
     Tau_r: 1.0
     Tau_p: 100000.0
     # Updates sensor uncertanty parameters
     Sigma_att_update: 0.001
     Sigma_spd_update: 0.005
-    Sigma_alt_update: 0.05
+    Sigma_alt_update: 0.25
     Sigma_cam_uv: 10.0
     Sigma_cam_uv_anchors: 10.0
     Sigma_cam_initial_depth_range: 0.1
@@ -72,19 +73,20 @@
     Mono_cam_alpha_c: 0.0
     # visual detection and tracking parameters    
     Images_number_candidate_points_detected: 20
-    Images_minimun_distance_new_points: 20
+    Images_minimun_distance_new_points: 10
     Images_half_patch_size_when_initialized: 20
     Images_half_patch_size_when_matching: 6
     Images_max_innov_pixels: 50
     # For deleting feats and anchors
-    Visual_delete_Maximun_number_feats_allowed: 50
+    Visual_delete_Maximun_number_feats_allowed: 100
     Visual_delete_Maximun_number_anchors_allowed: 50
     Visual_delete_minimun_feats_in_state_before_delete: 20    
     Visual_delete_minimun_RatioMatched: 0.3    
     # visual update parameters
     Visual_update_use_1RANSAC_for_validation: true
     Visual_update_attitude_update: false
-    Visual_update_min_vel_for_update_feats: 0.02
+    # If there is not speed measurements, "Visual_update_min_vel_for_update_feats" must be whichever negative value 
+    Visual_update_min_vel_for_update_feats: -0.02
     Visual_update_use_anchors: true
     # uncertainty_depth_anchor_init: the smaller value the more the uncertanty has to converged to initialize the anchor
     Visual_update_uncertainty_depth_anchor_init: 0.08
@@ -92,20 +94,26 @@
     Select_KeyFrames_min_n_frames_between_kf: 5
     Select_KeyFrames_min_n_matches: 5
     Select_KeyFrames_min_ratio_distance_depth: 0.15
-    # Position update from global slam
+    # Position update from the (local) Bundle adjustment carried out by the global slam
     GS_xy_update: true
-    GS_z_update: true
+    GS_z_update: false
     GS_xy_update_max_delta: 0.1
-    GS_z_update_max_delta: 0.1    
+    GS_z_update_max_delta: 0.1
+    # Position update from the close loop process carried out by the global slam
+    CL_xy_update: true
+    CL_z_update: false
+    CL_xy_update_max_delta: 6.0
+    CL_z_update_max_delta: 1.0
+        
 #--------------------------------------------------------------------------
 # Plot component parameters         
 /plot:
   ros__parameters:
-    Viewer_width: 1000
-    Viewer_height: 600
-    Cam_distance: 4.0
-    Cam_pos_init_x: 0.5
-    Cam_pos_init_y: -1.0
+    Viewer_width: 1200
+    Viewer_height: 800
+    Cam_distance: 44.0
+    Cam_pos_init_x: 3.0
+    Cam_pos_init_y: -5.0
     Cam_pos_init_z: 0.0
     Cam_zoom_delta: 1.0
     Cam_move_delta: 0.5
@@ -135,8 +143,8 @@
     # Initialization of global map points (anchors)
     # A high value of "Init_number_candidate_points_per_kf" can cause a malloc crash
     Init_use_anms_for_select_strong_points: true     
-    Init_number_candidate_points_per_kf: 1000
-    Init_min_distance_to_previous_mapped_features: 5
+    Init_number_candidate_points_per_kf: 2500
+    Init_min_distance_to_previous_mapped_features: 1
     Init_min_depth_to_consider: .2
     # visual match
     VM_max_inov_error: 30
@@ -144,16 +152,50 @@
     VG_img_search_margin: 15
     # Delele points
     Delete_min_kf_matched_for_keep_anchor: 3
-    # Bundle Adjusment
-    BA_max_n_kf_optimized: 20
+    # ------Bundle Adjusment----------------------------------------------------------
+    # Local Bundle adjusment can close "small trajectory loops"!
+    # The different combination of parameter values "BA_max_n_previous_kf_for_search_matches", "BA_max_n_kf_optimized" and  
+    # "BA_min_n_latest_kf_to_optimize" will define the behaviour for small loop closure
+    # ---------
+    # "BA_max_n_previous_kf_for_search_matches" set the maximun number of previous kf to consider for searching matches, 
+    # set the number to high can affect the gmap real-time performance
+    BA_max_n_previous_kf_for_search_matches: 20
+    # "BA_max_n_kf_optimized" set the maximun window size for local Bundle Adjusment
+    BA_max_n_kf_optimized: 10
+    # "BA_min_n_latest_kf_to_optimize" set the minimun number of previous kf, respect to the latest one, 
+    # that are considered in local-BA. It must be less or equal "BA_max_n_kf_optimized".
+    # The difference between "BA_max_n_kf_optimized" and "BA_min_n_latest_kf_to_optimize" is the number of oldest visually linked kf,
+    # that the local-BA will try to include.   
+    BA_min_n_latest_kf_to_optimize: 7
+    # Uncertanty noise parameters used for BA
     BA_sigma_uv: 1.0
     BA_sigma_kf_att: 0.001
-    BA_sigma_kf_xy: 0.1
-    BA_sigma_kf_z: 0.2
-    BA_sigma_kf_pt: 0.1
+    BA_sigma_kf_xy: 0.05
+    BA_sigma_kf_z: 0.05
+    BA_sigma_kf_pt: 0.3
     BA_update_kf_pos: true
     BA_update_kf_att: true
     BA_update_map: true
+    # Used for not considering norm|delta_pos| obtained from BA bigger than "BA_max_delta_kf_pos" (m)
+    BA_max_delta_kf_pos: 1.75
+    #
+    #------ Close loop --------------------------------------------------------
+    #
+    # "CL_min_n_not_vl_kf": minimun number of consecutive non visually linked kf before searching for potential loop closures
+    CL_min_n_not_vl_kf: 10
+    # "CL_min_n_matches": minumun number of matches with mapped points to consider a close loop 
+    CL_min_n_matches: 40
+    # "CL_min_mean_reprojection_error" is used as treshold for the reprojection test used for validating the PnP pose.
+    # The bigger de value the most permisive is the test (more loops are detected), but the computed pose can be less accurate.
+    CL_min_mean_reprojection_error: 30.0
+    # Noise
+    CL_odo_sigma_kf_att: 0.0001
+    CL_odo_sigma_kf_xy: 0.05
+    CL_odo_sigma_kf_z: 0.05
+    CL_clo_sigma_kf_att: 0.00001
+    CL_clo_sigma_kf_xy: 0.005
+    CL_clo_sigma_kf_z: 0.005
+    CL_update_z: false
     
     
 

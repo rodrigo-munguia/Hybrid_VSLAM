@@ -147,7 +147,7 @@ void PLOTscene::initialize_scene()
   viewer.spinOnce(1, true);
   
   // draw grid
-  cv::viz::WGrid grid_xy(cv::Vec2i::all(10), cv::Vec2d::all(1.0),cv::viz::Color::white());
+  cv::viz::WGrid grid_xy(cv::Vec2i::all(30), cv::Vec2d::all(1.0),cv::viz::Color::white());
    grid_xy.setRenderingProperty(viz::OPACITY,0.2);
    viewer.showWidget("grid_xy", grid_xy);
   
@@ -293,7 +293,7 @@ void PLOTscene::PLOT_LOOP()
                   viewer.showWidget(id,kf_i_pos,kf_poses[i]);
                        
           }  
-          if(!Gmap.empty())
+          if(!Gmap.empty()&&!Gmap_color.empty())
             {
               cv::viz::WCloud cloud_local_map(Gmap,Gmap_color);
               cloud_local_map.setRenderingProperty(cv::viz::POINT_SIZE, 1);
