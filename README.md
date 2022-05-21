@@ -78,5 +78,4 @@ At this point, the following menu must appear in the console:
 ```
 8.- Press the key "p".
 
-*Notes on the sample dataset:* The sample dataset was captured in a very small environment and therefore can be easily mapped using only the local slam component. On the other hand, to test the global mapping component the maximum number of local visual features has been limited to allow the local slam to present error drift. In this latter case, the global mapping component minimizes the drift by using the bundle adjustment technique.
-You can change the number of the local map features allowed by changing parameters: Visual_delete_Maximun_number_XX in the configuration file /config/params.yaml. Or you can for instance deactivate the global mapping pose correction by setting false parameters BA_update_kf_XXX to observe the local slam drift.
+*Notes on the sample dataset:* The sample dataset was captured in an unstructured outdoor environment (the soil is composed mainly of dirt). Note that for this flight trajectory, the first loop is consistently closed and the second loop is randomly closed. The parameters can be modified in the configuration file /config/params.yaml to change the results and performance of the method. 
