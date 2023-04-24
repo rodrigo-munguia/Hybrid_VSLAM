@@ -39,6 +39,18 @@ struct parameters
     double Sigma_a;        
     double Tau_r;
     double Tau_p;
+
+    // Differential robot prediction parameters
+    double Robot_diff_Sigma_w;
+    double Robot_diff_Delta_t;
+    double Robot_diff_wheels_radius;
+    double Robot_diff_wheels_distance;
+    double Robot_diff_angular_vel_To_tics_factor;
+
+    // Mobile robot, linear and angular velocity odeometry
+    double Robot_Sigma_v;
+    double Robot_Sigma_w;
+    double Robot_odo_delta_t;
     
     // Updates
     bool Attitude_update;
@@ -55,6 +67,11 @@ struct parameters
     // Altitude update
     double Sigma_alt_update;
     int Alt_h_2_d;
+
+    // Features initialization method
+    string Visual_init_feats_method;
+    double Visual_init_initial_depth;
+    
     // Visual updates
     double Sigma_cam_uv;  // (pixels) camera measurement noise standard deviation (features)
     double Sigma_cam_uv_anchors;  // (pixels) camera measurement noise standard deviation (anchors)

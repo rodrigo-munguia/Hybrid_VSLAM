@@ -31,7 +31,8 @@ struct parameters
     int VM_max_inov_error;
 
     // Initialization of global map points (anchors) 
-    bool Init_use_anms_for_select_strong_points;  
+    bool Init_use_anms_for_select_strong_points;
+    double Init_anms_tolerance;   
     int Init_number_candidate_points_per_kf;
     int Init_min_distance_to_previous_mapped_features; // pixels
     double Init_min_depth_to_consider; // meters
@@ -61,6 +62,7 @@ struct parameters
     int CL_min_n_not_vl_kf;
     int CL_min_n_matches;
     double CL_min_mean_reprojection_error;
+    double CL_xy_update_max_delta;
     double CL_odo_sigma_kf_att;
     double CL_odo_sigma_kf_xy;
     double CL_odo_sigma_kf_z;

@@ -2,8 +2,10 @@
 # Dataset component parameters
 /data:
   ros__parameters:
-    #Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
-    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2021-8-4-12-54/    
+    Dataset: rawseeds
+    Dataset_path: /media/rodrigo/TOSCO/RESEARCH/DataSets/RAWSEEDS/Bicocca_2009-02-25b/
+    # init_time, the four significative digits represent seconds, the least six represent microseconds
+    init_time: 3690000000    
     run_time: 86.0
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
     x_vel_run_time: 1.5
@@ -15,11 +17,11 @@
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
     x_vel_run_time: 1.5
     Robot_state_size: 13    
-    Prediction_model: noise_driven
+    Prediction_model: differential_robot
     # Maximun frequency output of robot state in Hz. (Max_freq_output must be an integer > 10)
     Max_freq_output: 33
-    Attitude_update: true
-    Altitude_update: true
+    Attitude_update: false
+    Altitude_update: false
     Speed_update: false
     Visual_update: true
     GPS_update: false
@@ -37,11 +39,17 @@
     Range_sensor_max_range_pattern: 6.0
     Range_sensor_max_r_max: 1.75
     Range_sensor_max_range_operation: 6.0       
-    # Prediction parameters
+    # Noise driven prediction parameters
     Sigma_w: 0.1    
     Sigma_a: 6.00   
     Tau_r: 1.0
     Tau_p: 100000.0
+    # Differential-robot model parameters
+    Robot_diff_Delta_t: 0.02
+    Robot_diff_wheels_radius: 0.28768136
+    Robot_diff_wheels_distance: 0.45
+      # Robot_diff_angular_vel_To_tics_factor = 1/tics_to_angular_vel_factor
+    Robot_diff_angular_vel_To_tics_factor: 1024.0
     # Updates sensor uncertanty parameters
     Sigma_att_update: 0.001
     Sigma_spd_update: 0.005

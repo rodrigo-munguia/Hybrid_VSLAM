@@ -26,6 +26,8 @@
 #include "interfaces/msg/range.hpp"
 #include "interfaces/msg/gps.hpp"
 #include "interfaces/msg/spd.hpp"
+#include "interfaces/msg/ododiff.hpp"
+#include "interfaces/msg/odovw.hpp"
 
 #include "parameters.hpp"
 #include "getData.hpp"
@@ -56,7 +58,8 @@ private:
   rclcpp::Publisher<interfaces::msg::Range>::SharedPtr pub_Range_;
   rclcpp::Publisher<interfaces::msg::Frame>::SharedPtr pub_Frame_;
   rclcpp::Publisher<interfaces::msg::Spd>::SharedPtr pub_Spd_;       
-  
+  rclcpp::Publisher<interfaces::msg::Ododiff>::SharedPtr pub_OdoD_;
+  rclcpp::Publisher<interfaces::msg::Odovw>::SharedPtr pub_OdoV_;
   
   // declare Services
   rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv1_;   

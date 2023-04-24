@@ -18,7 +18,8 @@ using namespace std;
                    "|   'q' to quit.\n"
                    "|   'p'-> Play/Pause  r-> Reset\n "
                    "|   '-'-> zoom out '+' ->  zoom in '1'-> x-y view '2' -> x-z view  '3'->y-z view\n"
-                   "|   '8'-> view up '5' ->  view down '4'-> view left '6' -> view right  'c'-> clear plot\n"                    
+                   "|   '8'-> view up '5' ->  view down '4'-> view left '6' -> view right  'c'-> clear plot\n"
+                   "|   '9'-> save screenshot\n"                      
                  << std::endl;
    
  }   
@@ -192,6 +193,12 @@ while (k != 'q')
             if ( k == 'c')
             {
               // 'c' ->  clear plot
+              request = std::make_shared<interfaces::srv::SimpleServ::Request>();
+              request->cmd = k;
+              result = client_plot->async_send_request(request); 
+            }
+            if (k == '9')
+            {
               request = std::make_shared<interfaces::srv::SimpleServ::Request>();
               request->cmd = k;
               result = client_plot->async_send_request(request); 

@@ -3,7 +3,7 @@
 
 Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
-R Munguia, JC Trujillo, E Guerra, A Grau "A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping" Sensors 22 (1), 210. https://doi.org/10.3390/s22010210
+"Monocular-based SLAM for Mobile Robots: Filtering-Optimization Hybrid Approach" 
 
 **IMPORTANT:** *Note that this software is currently under development.!!*  
 
@@ -60,7 +60,7 @@ foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
 5.- In the same terminal run the Hybrid SLAM using the launch file "launch/slam.launch.py". At this point, a graphical interface must be opened.
 ```
-foo@bar:~/home/Hybrid_VLSAM$ ros2 launch launch/slam.launch.py
+foo@bar:~/home/Hybrid_VLSAM$ ros2 launch launch/quad_slam.launch.py
 ```
 6.- In the root project folder open a second terminal and source the overlay: 
 ```

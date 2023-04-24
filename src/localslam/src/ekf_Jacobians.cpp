@@ -6,7 +6,115 @@
 //--------------------------------------------------------------------------------------------
 using namespace std;
 
+void Jac_euler_diff_driven_model(arma::vec& x, double delta_t,double R, double L, arma::mat::fixed<13,13>& Jfx, arma::mat::fixed<13,2>& Jfu)
+{
+   /*
+    % Initial States ***************************************************
+    % x meaning
+    % index  0    1   2    3   4   5   6    7  8  9  10  11  12  
+    %       null phi theta psi w_x w_y w_z  x  y  z  v_x v_y v_z 
+    % Attitude states
+    % x(0) not used
+    % x(1:3)=   [phi theta psi] -> roll, pitch, and yaw of the robot
+    % x(4:6)=   [w_x w_y w_z ] ->  vel rotation in the body frame
+    % Position states
+    % x(7:9)= [x  y  z]  ->  Position in the navigation coordinate frame
+    % (navigation to camera)
+    % x(10:12)= [v_x v_y v_z]  -> Velocity in body coordinate frame.
+    */
+    // NOTE: this jacobian is defined with respect  to continous equations, so matrix P must be integrated
+    // Pdot = Fx*P + P*Fx' + Fu*U*Fu';
+    // P = P + Pdot*dt;
+     
+       
+    // Attitude Equations
+    double phi = x[1];
+    double theta = x[2];
+    double psi = x[3];
+    double p = x[4];
+    double q = x[5];
+    double r = x[6];
+    double u = x[10];
+    double v = x[11];
+    double w = x[12];
+    // body rotational velocities to euler velocities Rotation matrix   
+   arma::mat::fixed<3,3> R_b2e = {{1 ,  sin(phi)*tan(theta) ,  cos(phi)*tan(theta) },
+                                  {0 ,       cos(phi)       ,    -sin(phi)         },
+                                  {0 ,  sin(phi)/cos(theta) ,  cos(phi)/cos(theta) }};
+   /*                                
+   euler_dot = R_b2e*[w_x w_y w_z]'; 
+   
+   w_dot = -kr*[w_x w_y w_z]' +  noise;
+   */
+   // Position Equations
+   double Ra2b[9];
+   Euler_to_Ra2b_colum_major(phi, theta, psi, Ra2b);
+   arma::mat Rn2r(Ra2b,3,3); // navigation to robot rotation matrix
+   arma::mat::fixed<3,3> Rr2n = Rn2r.t();
+   /*
+   pos_dot = Rb2w*[v_x v_y v_z]';
+   
+   vel_dot = -kr*[v_x v_y v_z]' + noise;
+   
+   */
+   // JFx = [ 0  0       0      0       0    ]
+   //       [ 0 dfe_de  dfe_dw  0       0    ]
+   //       [ 0  0       0      0       0    ]
+   //       [ 0 dfp_de   0      0     dfp_dv ]
+   //       [ 0  0       0      0       0    ]   
+   
+   arma::mat::fixed<3,3> dfe_de = {{    q*cos(phi)*tan(theta) - r*sin(phi)*tan(theta),               r*cos(phi)*(tan(theta)*tan(theta) + 1) + q*sin(phi)*(tan(theta)*tan(theta) + 1), 0},
+                                   {                        - r*cos(phi) - q*sin(phi),                                                                           0, 0},
+                                   {(q*cos(phi))/cos(theta) - (r*sin(phi))/cos(theta), (r*cos(phi)*sin(theta))/(cos(theta)*cos(theta)) + (q*sin(phi)*sin(theta))/(cos(theta)*cos(theta)), 0}};
 
+  arma::mat::fixed<3,3> dfe_dw = R_b2e;
+
+  //arma::mat::fixed<3,3> dfw_dw = -arma::eye(3,3)*kr;
+
+  arma::mat::fixed<3,3> dfp_de = {{ v*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) + w*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)), w*cos(phi)*cos(psi)*cos(theta) - u*cos(psi)*sin(theta) + v*cos(psi)*cos(theta)*sin(phi), w*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - v*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)) - u*cos(theta)*sin(psi)},
+                                  {- v*(cos(psi)*sin(phi) - cos(phi)*sin(psi)*sin(theta)) - w*(cos(phi)*cos(psi) + sin(phi)*sin(psi)*sin(theta)), w*cos(phi)*cos(theta)*sin(psi) - u*sin(psi)*sin(theta) + v*cos(theta)*sin(phi)*sin(psi), w*(sin(phi)*sin(psi) + cos(phi)*cos(psi)*sin(theta)) - v*(cos(phi)*sin(psi) - cos(psi)*sin(phi)*sin(theta)) + u*cos(psi)*cos(theta)},
+                                  {                                                                v*cos(phi)*cos(theta) - w*cos(theta)*sin(phi),                          - u*cos(theta) - w*cos(phi)*sin(theta) - v*sin(phi)*sin(theta),                                                                                                                                   0}};
+  
+  arma::mat::fixed<3,3> dfp_dv  = Rr2n;
+
+  //arma::mat::fixed<3,3> dfv_dv = -arma::eye(3,3)*kp;
+
+
+  Jfx.zeros();
+  Jfx(arma::span(1,3),arma::span(1,3)) = dfe_de;
+  Jfx(arma::span(1,3),arma::span(4,6)) = dfe_dw;
+ // Jfx(arma::span(4,6),arma::span(4,6)) = dfw_dw;
+  Jfx(arma::span(7,9),arma::span(1,3)) = dfp_de;
+  Jfx(arma::span(7,9),arma::span(10,12)) = dfp_dv;
+ // Jfx(arma::span(10,12),arma::span(10,12)) = dfv_dv;
+   
+  
+  // u = [wl  wr]
+
+  // JFu = [   0       0        ]
+   //       [ dw_dw_l   dw_w_r  ]
+   //       [   0       0       ]
+   //       [ dv_dw_l   dv_dw_r ]
+
+  Jfu.zeros(); 
+  //Jfu(arma::span(4,6),arma::span(0,2)) = arma::eye(3,3);
+  //Jfu(arma::span(10,12),arma::span(3,5)) = arma::eye(3,3);
+  Jfu.at(6,0) = R/L;
+  Jfu.at(6,1) = -R/L;
+
+  Jfu.at(10,0) = R/2;
+  Jfu.at(10,1) = R/2;
+  
+  
+
+
+
+
+
+
+
+
+}
 
 void Jac_euler_noise_driven_model(arma::vec& x, double delta_t, double Tau_r, double Tau_p, arma::mat::fixed<13,13>& Jfx, arma::mat::fixed<13,6>& Jfu)
 {  

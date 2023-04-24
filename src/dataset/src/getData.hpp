@@ -98,5 +98,8 @@ struct GETDATA
 
 DATA getData(parameters &PAR);
 DATA getDataB(parameters &PAR);
+DATA getDataR(parameters &PAR);
+DATA getDataL(parameters &PAR);
+DATA getDataM(parameters &PAR);
 
 #endif

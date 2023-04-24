@@ -17,6 +17,7 @@ void Gslam::setParameters()
    this->declare_parameter<double>("Mono_cam_alpha_c",0.0);
    this->declare_parameter<int>("Init_number_candidate_points_per_kf",500);
    this->declare_parameter<bool>("Init_use_anms_for_select_strong_points",true);
+   this->declare_parameter<double>("Init_anms_tolerance",0.3);
    this->declare_parameter<int>("Init_min_distance_to_previous_mapped_features",5);
    this->declare_parameter<double>("Init_min_depth_to_consider",0.2);
    this->declare_parameter<int>("VM_max_inov_error",20);
@@ -37,6 +38,7 @@ void Gslam::setParameters()
    this->declare_parameter<int>("CL_min_n_not_vl_kf",2);
    this->declare_parameter<int>("CL_min_n_matches",10);
    this->declare_parameter<double>("CL_min_mean_reprojection_error",25.0);
+   this->declare_parameter<double>("CL_xy_update_max_delta",6.0);
    this->declare_parameter<double>("CL_odo_sigma_kf_att",0.0001);
    this->declare_parameter<double>("CL_odo_sigma_kf_xy",0.05);
    this->declare_parameter<double>("CL_odo_sigma_kf_z",0.05);
@@ -61,6 +63,7 @@ void Gslam::setParameters()
    this->get_parameter("Mono_cam_alpha_c",PAR.Mono_cam_alpha_c);
    this->get_parameter("Init_number_candidate_points_per_kf",PAR.Init_number_candidate_points_per_kf);
    this->get_parameter("Init_use_anms_for_select_strong_points",PAR.Init_use_anms_for_select_strong_points);
+   this->get_parameter("Init_anms_tolerance",PAR.Init_anms_tolerance);
    this->get_parameter("Init_min_distance_to_previous_mapped_features",PAR.Init_min_distance_to_previous_mapped_features);
    this->get_parameter("Init_min_depth_to_consider",PAR.Init_min_depth_to_consider);
    this->get_parameter("VM_max_inov_error",PAR.VM_max_inov_error);
@@ -81,6 +84,7 @@ void Gslam::setParameters()
    this->get_parameter("CL_min_n_not_vl_kf",PAR.CL_min_n_not_vl_kf);
    this->get_parameter("CL_min_n_matches",PAR.CL_min_n_matches);
    this->get_parameter("CL_min_mean_reprojection_error",PAR.CL_min_mean_reprojection_error);
+   this->get_parameter("CL_xy_update_max_delta",PAR.CL_xy_update_max_delta);
    this->get_parameter("CL_odo_sigma_kf_att",PAR.CL_odo_sigma_kf_att);
    this->get_parameter("CL_odo_sigma_kf_xy",PAR.CL_odo_sigma_kf_xy);
    this->get_parameter("CL_odo_sigma_kf_z",PAR.CL_odo_sigma_kf_z);

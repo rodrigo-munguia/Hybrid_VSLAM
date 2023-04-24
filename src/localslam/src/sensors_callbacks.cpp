@@ -7,6 +7,7 @@
 #include "interfaces/msg/frame.hpp"
 #include "interfaces/msg/range.hpp"
 #include "interfaces/msg/gps.hpp"
+#include "interfaces/msg/ododiff.hpp"
 #include "localslam_types.hpp"
 #include <mutex>
 #include <cv_bridge/cv_bridge.h>
@@ -175,6 +176,38 @@ void EKFslam::Speed_callback(const interfaces::msg::Spd & msg) const
 
 }
 
+//-------------------------------------------------
+void EKFslam::OdoDiff_callback(const interfaces::msg::Ododiff &msg) const
+{
+  DATA dat;
+  dat.odod.time = msg.time;
+  dat.data_type = "odometry_diff";
+  dat.odod.TicksLeft = msg.ticks_left;
+  dat.odod.TicksRight = msg.ticks_right;
+  dat.time = msg.time;
+
+   mutex_dat.lock(); 
+    ManageBuffer(dat);
+  mutex_dat.unlock(); 
+
+}
+
+//-------------------------------------------------
+void EKFslam::OdoVW_callback(const interfaces::msg::Odovw &msg) const
+{
+  DATA dat;
+  dat.odov.time = msg.time;
+  dat.data_type = "odometry_vw";
+  dat.odov.angular_vel= msg.angular_vel;
+  dat.odov.linear_vel = msg.linear_vel;
+  dat.time = msg.time;
+
+   mutex_dat.lock(); 
+    ManageBuffer(dat);
+   mutex_dat.unlock(); 
+
+}
+
 //--------------------------------------------------
 
  void EKFslam::ManageBuffer(DATA &dat)
@@ -220,6 +253,20 @@ DATA EKFslam::getData()
           DataBuffer.erase(DataBuffer.begin() + i);          
           break;
       }
+      //-------- Odometry diff
+      if (DataBuffer[i].data_type == "odometry_diff")
+      {   
+          dat =  DataBuffer[i];        
+          DataBuffer.erase(DataBuffer.begin() + i);          
+          break;
+      }
+      //-------- Odometry linear-angular velocity
+      if (DataBuffer[i].data_type == "odometry_vw")
+      {   
+          dat =  DataBuffer[i];        
+          DataBuffer.erase(DataBuffer.begin() + i);          
+          break;
+      }
       //-------- Attitude
       if (DataBuffer[i].data_type == "attitude")
       {   
@@ -255,7 +302,7 @@ DATA EKFslam::getData()
             break;
           }  
       }
-      //-------- camera measurment
+      //-------- camera measurement
       if (DataBuffer[i].data_type == "frame")
       {   
           dat =  DataBuffer[i];                 

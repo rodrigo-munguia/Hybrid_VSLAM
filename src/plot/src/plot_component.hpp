@@ -62,6 +62,7 @@ private:
   
 
   void PLOTscene::draw_drone();
+  void PLOTscene::draw_diff_robot();
   void PLOTscene::set_camera_view();
   double Cam_distance;
   bool New_cam_view = false;
@@ -112,6 +113,8 @@ private:
   double Robot_cam_axis_x;
   double Robot_cam_axis_y;
   double Robot_cam_axis_z;
+  string Robot_type;
+
   
 };
 

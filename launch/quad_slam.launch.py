@@ -30,7 +30,7 @@ def generate_launch_description():
     configFile = os.path.join(
         os.getcwd(),         
         'config',
-        'params.yaml'
+        'quad_params.yaml'
     )
     #configFile = '/home/rodrigo/Dropbox/RESEARCH/RTSLAM/ros_ws/config/params.yaml'
     

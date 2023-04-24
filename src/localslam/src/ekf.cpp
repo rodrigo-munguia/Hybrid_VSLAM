@@ -12,14 +12,20 @@ void EKF::system_init(DATA &dat)
 
     if(PAR.Data_origin == "dataset")
     {
-       
-       if (dat.data_type == "attitude")
+       if(PAR.Attitude_update == true)
        {
-          //init_quat_system_state(dat);
-          init_euler_system_statet(dat);
-          initialized = true;
-       }       
-
+          if (dat.data_type == "attitude")
+          {
+              //init_quat_system_state(dat);
+              init_euler_system_statet(dat);
+              initialized = true;
+          }       
+       }
+       else
+       {
+             init_euler_system_statet(dat);
+             initialized = true;
+       }
 
     }
 
@@ -230,9 +236,11 @@ void EKF::ekf_step(DATA &dat)
                 
               ct_i = std::chrono::high_resolution_clock::now();  
              // cout << delta_t << endl;
-              
-              if(receiving_data)prediction(delta_t); // if data is been received, perform EKF prediction
-
+     
+              if(receiving_data && PAR.Prediction_model == "noise_driven")
+              {               
+                prediction_euler_noise_driven(delta_t); // if data is been received, perform EKF prediction
+              } 
               total_exec_time =  total_exec_time + delta_t;
               prediction_done = true;
               last_time = dt_i;
@@ -282,7 +290,17 @@ void EKF::ekf_step(DATA &dat)
                 //cout << delta_t <<  endl;
                 */
             } 
-                 
+
+            if(dat.data_type == "odometry_vw" && PAR.Prediction_model == "odometry_vw_robot")
+            {
+                prediction_euler_odometry_vw_robot(dat.odov);
+            }
+
+            if(dat.data_type == "odometry_diff" && PAR.Prediction_model == "differential_robot")
+            {
+                prediction_euler_differential_robot(dat.odod);
+            }
+
 
             if(dat.data_type == "frame")
             {
@@ -334,6 +352,20 @@ void EKF::ekf_step(DATA &dat)
             //cout << "Gps sats: " << dat.gps.sat << endl;
 
             }
+            
+            if(dat.data_type == "odometry_diff")
+            {
+
+              //cout << "Odometry Diff: " << dat.odod.TicksRight << " " << dat.odod.TicksLeft << endl;
+
+            }
+
+            if(dat.data_type == "odometry_vw")
+            {
+
+              //cout << "Odometry VW: " << dat.odov.linear_vel << " " << dat.odov.angular_vel << endl;
+            }
+
             if (dat.data_type != "" || prediction_done == true ) // for any kind of measurement
             {   
                auto ct_t = std::chrono::high_resolution_clock::now();

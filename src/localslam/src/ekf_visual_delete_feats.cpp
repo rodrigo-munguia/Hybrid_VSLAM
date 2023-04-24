@@ -100,6 +100,11 @@ void EKF::Visual_delete_feats()
         {
             int idx_feat_to_del = FN[i].feat_idx;
             Delete_i_feat_(idx_feat_to_del);
+            for(int j = i; j < n_old_feats_to_del; j++)
+            {
+                if(FN[j].feat_idx > idx_feat_to_del)FN[j].feat_idx--;
+            }
+            int q = 10;
             //cout << "Old feat deleted: " << idx_feat_to_del << endl; 
         }
 
@@ -128,6 +133,10 @@ void EKF::Visual_delete_feats()
         {
             int idx_anchor_to_del = AN[i].feat_idx;
             delete_i_anchor_(idx_anchor_to_del,  AnchorsDATA);
+            for(int j = i; j < n_old_anchors_to_del; j++)
+            {
+                if(AN[j].feat_idx > idx_anchor_to_del)AN[j].feat_idx--;
+            }
             //cout << "Old Anchor deleted: " << idx_anchor_to_del << endl; 
         }
 

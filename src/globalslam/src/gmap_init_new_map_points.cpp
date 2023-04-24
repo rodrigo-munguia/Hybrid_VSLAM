@@ -93,7 +93,7 @@ std::vector<int64> GMAP::Init_new_map_points()
             vector<cv::KeyPoint> keyPointsSorted;
             for (unsigned int i = 0; i < Gmap.KeyFDATA[idx_current_KF].keyPoints_all.size(); i++) keyPointsSorted.push_back(Gmap.KeyFDATA[idx_current_KF].keyPoints_all[Indx[i]]);
             int numRetPoints = PAR.Init_number_candidate_points_per_kf; //choose exact number of return points    
-            float tolerance = 0.3; // tolerance of the number of return points
+            float tolerance = PAR.Init_anms_tolerance; // tolerance of the number of return points
             keyPoints_current = Ssc(keyPointsSorted,numRetPoints,tolerance,Gmap.KeyFDATA[idx_current_KF].frame.cols,Gmap.KeyFDATA[idx_current_KF].frame.rows);
         //----------------------------------- 
         detector->compute(Gmap.KeyFDATA[idx_current_KF].frame, keyPoints_current, Descriptors_current); // compute descriptors for Keypoints    
@@ -129,7 +129,7 @@ std::vector<int64> GMAP::Init_new_map_points()
     // matchFeatures2b( query_des , tarjet_des, matches)   
     matchFeatures2b(Descriptors_previous, Descriptors_current, matches);  
 
-    // -----------  Use RANSAC (Find Homograpy) to discard outliers
+    // -----------  Use RANSAC (Find Fundamental Matrix) to discard outliers
     std::vector<cv::Point2f> Points_m2;
     std::vector<cv::Point2f> Points_m1;
     for(unsigned int i =0 ; i< matches.size();i++ ) // for each match, update Feature table
@@ -146,6 +146,8 @@ std::vector<int64> GMAP::Init_new_map_points()
     cv::Mat H = cv::findFundamentalMat(Points_m2, Points_m1, cv::RANSAC, 3, 0.99, status );
     // obtain inliers
         std::vector<cv::DMatch> inliers;   // Store correct matches in "inliers"
+
+    if(status.rows > 0)    
         for(size_t i = 0; i < Points_m2.size(); i++) 
             {
                 if(status.at<char>(i) != 0) 

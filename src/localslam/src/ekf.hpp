@@ -53,6 +53,8 @@ class EKF
         parameters PAR;
         void prediction(double delta_t);
         void prediction_quat_noise_driven(double delta_t);
+        void prediction_euler_differential_robot(ODOD &odod);
+        void prediction_euler_odometry_vw_robot(ODOV &odov);
         void prediction_euler_noise_driven(double delta_t);
         void init_quat_system_state(DATA &dat);
         void init_euler_system_statet(DATA &dat);
@@ -63,8 +65,12 @@ class EKF
         void Altitude_update(ALT &alt);
         void Visual_update_e(FRAME *frame);
         void Visual_update_e_init_feat_wr(FRAME *frame);
+        void Visual_update_e_init_feat_delayed(FRAME *frame);
         void Visual_update_e_init_anchors();
         void Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Points, cv::Mat &Descriptors, vector<cv::Mat> &Patches_init, vector<cv::Mat> &Patches_match);
+        arma::vec::fixed<3> Triangulate_sigle_3d_point(cv::Point2f &uv1d,cv::Point2f &uv2d,arma::mat::fixed<3,3> &Rn2c_1,arma::vec::fixed<3> &t_c2n_1,arma::mat::fixed<3,3> &Rn2c_2,arma::vec::fixed<3> &t_c2n_2 );
+
+        
         void Remove_close_points(vector<cv::KeyPoint>& output_KP, vector<cv::KeyPoint>&  input_KP);
         void Delete_i_feat_(int idx);
         int Visual_match_feats(FRAME *frame);

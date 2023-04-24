@@ -33,6 +33,14 @@ void EKFslam::setParameters()
    this->declare_parameter<double>("Sigma_a",1.0);
    this->declare_parameter<double>("Tau_r",1.0);
    this->declare_parameter<double>("Tau_p",100.0);
+   this->declare_parameter<double>("Robot_diff_Sigma_w",0.05);   
+   this->declare_parameter<double>("Robot_diff_Delta_t",0.02);
+   this->declare_parameter<double>("Robot_diff_wheels_radius",0.28768136);
+   this->declare_parameter<double>("Robot_diff_wheels_distance",0.45);
+   this->declare_parameter<double>("Robot_diff_angular_vel_To_tics_factor",1024.0);
+   this->declare_parameter<double>("Robot_odo_delta_t",0.02);
+   this->declare_parameter<double>("Robot_Sigma_v",0.01);
+   this->declare_parameter<double>("Robot_Sigma_w",0.01);
    this->declare_parameter<double>("Sigma_att_update",0.000000001);
    this->declare_parameter<double>("Sigma_spd_update",0.001);   
    this->declare_parameter<double>("Sigma_alt_update",0.1);
@@ -41,6 +49,8 @@ void EKFslam::setParameters()
    this->declare_parameter<double>("Sigma_cam_initial_depth_range",0.1);
    this->declare_parameter<double>("Sigma_cam_initial_depth_WOrange",0.2);
    this->declare_parameter<int>("Alt_h_2_d",-1);
+   this->declare_parameter<string>("Visual_init_feats_method","img_range");
+   this->declare_parameter<double>("Visual_init_initial_depth",1.0);
    this->declare_parameter<double>("Mono_cam_2_robot_axis_x",0.10);
    this->declare_parameter<double>("Mono_cam_2_robot_axis_y",0.0);
    this->declare_parameter<double>("Mono_cam_2_robot_axis_z",1.5707963268);
@@ -114,6 +124,14 @@ void EKFslam::setParameters()
    this->get_parameter("Sigma_a",PAR.Sigma_a);
    this->get_parameter("Tau_r",PAR.Tau_r);
    this->get_parameter("Tau_p",PAR.Tau_p);
+   this->get_parameter("Robot_diff_Sigma_w",PAR.Robot_diff_Sigma_w);
+   this->get_parameter("Robot_diff_Delta_t",PAR.Robot_diff_Delta_t);
+   this->get_parameter("Robot_diff_wheels_radius",PAR.Robot_diff_wheels_radius);
+   this->get_parameter("Robot_diff_wheels_distance",PAR.Robot_diff_wheels_distance);
+   this->get_parameter("Robot_diff_angular_vel_To_tics_factor",PAR.Robot_diff_angular_vel_To_tics_factor);
+   this->get_parameter("Robot_odo_delta_t",PAR.Robot_odo_delta_t);
+   this->get_parameter("Robot_Sigma_v",PAR.Robot_Sigma_v);
+   this->get_parameter("Robot_Sigma_w",PAR.Robot_Sigma_w);
    this->get_parameter("Sigma_att_update",PAR.Sigma_att_update);
    this->get_parameter("Sigma_spd_update",PAR.Sigma_spd_update);    
    this->get_parameter("Sigma_alt_update",PAR.Sigma_alt_update);
@@ -122,6 +140,8 @@ void EKFslam::setParameters()
    this->get_parameter("Sigma_cam_initial_depth_range",PAR.Sigma_cam_initial_depth_range);
    this->get_parameter("Sigma_cam_initial_depth_WOrange",PAR.Sigma_cam_initial_depth_WOrange);
    this->get_parameter("Alt_h_2_d",PAR.Alt_h_2_d);
+   this->get_parameter("Visual_init_feats_method",PAR.Visual_init_feats_method);
+   this->get_parameter("Visual_init_initial_depth",PAR.Visual_init_initial_depth);
    this->get_parameter("Mono_cam_2_robot_axis_x",PAR.Mono_cam_2_robot_axis_x);
    this->get_parameter("Mono_cam_2_robot_axis_y",PAR.Mono_cam_2_robot_axis_y);
    this->get_parameter("Mono_cam_2_robot_axis_z",PAR.Mono_cam_2_robot_axis_z);

@@ -131,6 +131,13 @@ bool useExtrinsicGuess = true;   // if true the function uses the provided rvec 
                 in++;
               }
               */
+             
+              if(uvd.x == -1 || uvd.y == -1)
+              {
+                sum_e = 100000000;
+                break;
+              }
+              
               double d = sqrt( pow(uvd.x - uvm.x,2) + pow(uvd.y - uvm.y,2)  );
               sum_e = sum_e + d;
               n_in++;
@@ -139,9 +146,11 @@ bool useExtrinsicGuess = true;   // if true the function uses the provided rvec 
       }
       
       double mean_reprojection_error  = sum_e/n_in;
-     // cout << "Mean reprojection error: " << mean_reprojection_error  << endl;
+      cout << "Potential Loop: Mean reprojection error: " << mean_reprojection_error  << endl;
+      
+      double d_xy = sqrt( pow(tvec_u.at<double>(0) - tvec.at<double>(0),2) +  pow(tvec_u.at<double>(1) - tvec.at<double>(1),2) );
 
-      if (mean_reprojection_error < PAR.CL_min_mean_reprojection_error)
+      if (mean_reprojection_error < PAR.CL_min_mean_reprojection_error && d_xy < PAR.CL_xy_update_max_delta)
       { 
         // The pose computed by the PnP technique es admited.      
         // cout << "Close loop: " << endl;

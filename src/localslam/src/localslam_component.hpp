@@ -24,6 +24,8 @@
 #include "interfaces/msg/range.hpp"
 #include "interfaces/msg/gps.hpp"
 #include "interfaces/msg/spd.hpp"
+#include "interfaces/msg/ododiff.hpp"
+#include "interfaces/msg/odovw.hpp"
 #include "interfaces/msg/kf.hpp"
 #include "interfaces/msg/robotstate.hpp"
 #include "localslam_types.hpp"
@@ -57,7 +59,11 @@ private:
   rclcpp::Subscription<interfaces::msg::Gps>::SharedPtr sub_Gps_;
   rclcpp::Subscription<interfaces::msg::Range>::SharedPtr sub_Range_;
   rclcpp::Subscription<interfaces::msg::Frame>::SharedPtr sub_Frame_;
-  rclcpp::Subscription<interfaces::msg::Spd>::SharedPtr sub_Spd_;       
+  rclcpp::Subscription<interfaces::msg::Spd>::SharedPtr sub_Spd_;
+  rclcpp::Subscription<interfaces::msg::Ododiff>::SharedPtr sub_OdoD_;
+  rclcpp::Subscription<interfaces::msg::Odovw>::SharedPtr sub_OdoV_;
+
+
   // declare callbacks
   void Alt_callback(const interfaces::msg::Alt & msg) const;
   void Att_callback(const interfaces::msg::Att & msg) const;
@@ -65,6 +71,8 @@ private:
   void Range_callback(const interfaces::msg::Range & msg) const;
   void Frame_callback(const interfaces::msg::Frame & msg) const;
   void Speed_callback(const interfaces::msg::Spd & msg) const;
+  void OdoDiff_callback(const interfaces::msg::Ododiff &msg) const;
+  void OdoVW_callback(const interfaces::msg::Odovw &msg) const;
   
   // declare Services
   rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv_ekf_run_;

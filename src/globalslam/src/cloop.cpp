@@ -49,7 +49,10 @@ void CLOOP::Step(KEYFRAME &kf_cl)
     Get_matches(kf_cl,idx_pt_matches,image_points,idx_kf_matched);
     n_kf_wo_cl++;
 
-    if (idx_pt_matches.size() > PAR.CL_min_n_matches && n_kf_wo_cl > PAR.CL_min_n_not_vl_kf)
+    travel_dis += arma::as_scalar(arma::norm(kf_cl.t_c2n - last_pos));
+    last_pos = kf_cl.t_c2n;        
+
+    if (idx_pt_matches.size() > PAR.CL_min_n_matches && travel_dis > 5)
     { 
       /*
       cout << Gmap.Vgraph << endl;
@@ -64,7 +67,8 @@ void CLOOP::Step(KEYFRAME &kf_cl)
       if(get_pos == true)
       {
         Update_gmap(kf_cl_pos,kf_cl,idx_kf_matched);
-
+        cout << "Distance traveled since origin/last pos update: " << travel_dis << endl;
+        travel_dis = 0;
         n_kf_wo_cl = 0;
         Close_loop = true;
       }

@@ -6,7 +6,7 @@
 /*---------------------------------------------------
 Rodrigo Munguía 2020.
 
-Get data from data base
+Get data from Bebop data base
 -----------------------------------------------------
 */
 

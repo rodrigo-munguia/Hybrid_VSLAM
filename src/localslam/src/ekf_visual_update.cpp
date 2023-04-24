@@ -12,9 +12,13 @@ void EKF::Visual_update_e(FRAME *frame)
    Visual_delete_feats(); // delete old/bad visual features
 
    
-   if(frame->range > 0)
+   if(frame->range > 0 && PAR.Visual_init_feats_method == "undelayed_range")
    {
       Visual_update_e_init_feat_wr(frame); // Initialize new visual features into the system state
+   }
+   if (PAR.Visual_init_feats_method == "delayed")
+   {
+      Visual_update_e_init_feat_delayed(frame);
    }   
 
    if(PAR.Visual_update_use_anchors == true)

@@ -126,7 +126,7 @@ void CLOOP::Get_matches(KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches,std::v
               
             }
             idx_kf_matched = idx_kf;
-          //cout << "Potential loop detected: " << matches.size() << " matches with KF: " << idx_kf << endl;    
+            //cout << "Potential loop detected: " << matches.size() << " matches with KF: " << idx_kf << endl;    
           break;
           }
       

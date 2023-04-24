@@ -79,6 +79,21 @@ struct SPD
     float speedZ;
 };
 
+struct ODOD
+{
+    long int time;
+    int TicksRight;
+    int TicksLeft;
+};
+
+struct ODOV
+{
+    long int time;
+    float linear_vel;
+    float angular_vel;
+    
+};
+
 
 
 // struct for storing data from sensors
@@ -93,6 +108,8 @@ struct DATA
     ALT alt;
     ATT att;
     SPD spd;
+    ODOD odod;
+    ODOV odov;
 };
 
 struct POINT3d

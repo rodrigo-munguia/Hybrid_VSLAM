@@ -51,7 +51,30 @@ PLOTscene::PLOTscene(const rclcpp::NodeOptions & options)
   
 
 }
+//-------------------------------------------- 
+ void PLOTscene::draw_diff_robot()
+ {
+   cv::viz::WCoordinateSystem robot_ref(.15);          
+   viewer.showWidget("robot", robot_ref, robot_pose); 
+  cv::viz::WCube robot_cube(cv::Point3d(-.5,-.2,-.1),cv::Point3d(.1,.2,.05),true,cv::viz::Color::white());	
+  viewer.showWidget("robot_cube",robot_cube,robot_pose);
+  
+  cv::viz::WCube robot_cube2(cv::Point3d(-.3,-.15,-0.3),cv::Point3d(0.0,.15,.05),true,cv::viz::Color::white());	
+  viewer.showWidget("robot_cube2",robot_cube2,robot_pose);
+  
+  cv::viz::WCylinder wheel_l(cv::Point3d(0,-.22,.0),cv::Point3d(0,-.3,-.0),.1,30,cv::viz::Color::white()); 
+  viewer.showWidget("wheel_l",wheel_l,robot_pose);
+  cv::viz::WCylinder wheel_r(cv::Point3d(0,.22,.0),cv::Point3d(0,.3,-.0),.1,30,cv::viz::Color::white()); 
+  viewer.showWidget("wheel_r",wheel_r,robot_pose);
+  
+  cv::viz::WCameraPosition robot_cam_ref(.1);
+  viewer.showWidget("robot_cam_ref",robot_cam_ref,robot_pose*robot_camera_pose);
+  cv::viz::WCameraPosition robot_cam(Vec2f(0.889484, 0.523599),.1,cv::viz::Color::cyan());
+  viewer.showWidget("robot_cam",robot_cam,robot_pose*robot_camera_pose);
 
+ }
+
+//---------------------------------------------
 void PLOTscene::draw_drone()
 {
   cv::viz::WCoordinateSystem robot_ref(.15);          
@@ -134,6 +157,12 @@ void PLOTscene::set_camera_view()
     cv::Affine3d Pose(Ryz, t_c);
     viewer.setViewerPose(Pose);
   }
+  if(Cam_view == 4)
+  {
+    // take screenshot
+    viewer.saveScreenshot("ss.png");
+  }  
+
 
 
   //------------ 
@@ -250,19 +279,27 @@ void PLOTscene::PLOT_LOOP()
         //------------------------ 
         mutex_get_state.lock();
           if(new_robot_pose_flag == true)
-          {                    
-            draw_drone();          
+          { 
+            if (Robot_type == "quad")
+            {                   
+              draw_drone();
+            }
+            else if(Robot_type == "diff_robot")
+            {
+             draw_diff_robot();
+            }
+
 
             if(Draw_local_slam_trajectory)draw_localslam_trajectory(); 
 
             //viewer.removeWidget("Cloud");
-            if(!EKFmap.empty())
+            if(EKFmap.rows > 0 && EKFmap_color.rows > 0)
             {
               cv::viz::WCloud cloud_local_map(EKFmap,EKFmap_color);
               cloud_local_map.setRenderingProperty(cv::viz::POINT_SIZE, 2);
               viewer.showWidget( "Cloud_feats", cloud_local_map );
             }
-            if(!ANCHORSmap.empty())
+            if(ANCHORSmap.rows > 0 && ANCHORSmap.rows > 0)
             {
               cv::viz::WCloud cloud_local_map_anchors(ANCHORSmap,ANCHORSmap_color);
               cloud_local_map_anchors.setRenderingProperty(cv::viz::POINT_SIZE, 2);
@@ -496,6 +533,14 @@ void PLOTscene::Handle_plot_run_service(const std::shared_ptr<interfaces::srv::S
           }      
         mutex_set_cam.unlock();  
       }
+      if (request->cmd == '9')
+      {
+        cout << "plot-> screenshot" << endl;
+        mutex_set_cam.lock();          
+          New_cam_view = true;
+          Cam_view = 4;
+        mutex_set_cam.unlock();  
+      }
       
 
       response->response = true;
@@ -717,6 +762,7 @@ void PLOTscene::setParameters()
    this->declare_parameter<double>("Robot_cam_axis_x",0.0);
    this->declare_parameter<double>("Robot_cam_axis_y",0.0);
    this->declare_parameter<double>("Robot_cam_axis_z",0.0);
+   this->declare_parameter<string>("Robot_type","quad");
      
   
    // Set parameter struct
@@ -735,6 +781,7 @@ void PLOTscene::setParameters()
    this->get_parameter("Robot_cam_axis_x",Robot_cam_axis_x);
    this->get_parameter("Robot_cam_axis_y",Robot_cam_axis_y);
    this->get_parameter("Robot_cam_axis_z",Robot_cam_axis_z);
+   this->get_parameter("Robot_type",Robot_type);
    //cout << "data origin: " << PAR.Data_origin << endl; 
    
   

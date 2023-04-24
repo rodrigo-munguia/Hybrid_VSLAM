@@ -31,6 +31,7 @@
 #include "interfaces/msg/range.hpp"
 #include "interfaces/msg/gps.hpp"
 #include "interfaces/msg/spd.hpp"
+#include "interfaces/msg/ododiff.hpp"
 #include "getData.hpp"
 #include <cv_bridge/cv_bridge.h>
 
@@ -59,7 +60,9 @@ DATAset::DATAset(const rclcpp::NodeOptions & options)
   pub_Gps_ = create_publisher<interfaces::msg::Gps>("Gps_topic",10);
   pub_Range_ = create_publisher<interfaces::msg::Range>("Range_topic",10);
   pub_Frame_ = create_publisher<interfaces::msg::Frame>("Frame_topic",10); 
-  pub_Spd_ = create_publisher<interfaces::msg::Spd>("Speed_topic",10);      
+  pub_Spd_ = create_publisher<interfaces::msg::Spd>("Speed_topic",10);
+  pub_OdoD_ = create_publisher<interfaces::msg::Ododiff>("OdometryD_topic",10);
+  pub_OdoV_ = create_publisher<interfaces::msg::Odovw>("OdometryV_topic",10);      
  
  
 
@@ -126,14 +129,20 @@ DATAset::DATAset(const rclcpp::NodeOptions & options)
 void DATAset::setParameters()
 {  
    //  Declare node parameters (and default values)
+   this->declare_parameter<std::string>("Dataset", "bebop");
    this->declare_parameter<std::string>("Dataset_path", "/home/rodrigo/RESEARCH/DataSets/");
+   this->declare_parameter<long int>("init_time",0000000000);
+   this->declare_parameter<long int>("end_time" ,0010000000);
    this->declare_parameter<double>("run_time",10);
    this->declare_parameter<double>("x_vel_run_time",1); 
   
    // Set parameter struct
+   this->get_parameter("Dataset",PAR.Dataset);
    this->get_parameter("Dataset_path", PAR.Dataset_path);
    this->get_parameter("run_time", PAR.run_time);
    this->get_parameter("x_vel_run_time",PAR.x_vel_run_time);
+   this->get_parameter("init_time",PAR.init_time);
+   this->get_parameter("end_time",PAR.end_time);
    
     
 
@@ -149,7 +158,23 @@ void DATAset::on_timer()
 
   if (data_run == true)
   { 
-    dat =  getDataB(PAR);
+
+    if(PAR.Dataset == "bebop")
+    {
+      dat =  getDataB(PAR);
+    }
+    else if(PAR.Dataset == "rawseeds")
+    {
+      dat = getDataR(PAR);
+    }
+    else if(PAR.Dataset == "loris")
+    {
+      dat = getDataL(PAR);
+    }
+    else if(PAR.Dataset == "mobilerobot")
+    {
+      dat = getDataM(PAR);
+    }  
     
     if (dat.data_type != "")
     {
@@ -162,6 +187,8 @@ void DATAset::on_timer()
         message.img = *img_msg;
         message.time = dat.frame.time; 
         pub_Frame_->publish(message);
+
+        //cout << "f" << endl;
       
       }
       if(dat.data_type == "gps")
@@ -210,6 +237,26 @@ void DATAset::on_timer()
         message.speed_z = dat.spd.speedZ; 
         message.time = dat.spd.time;            
         pub_Spd_->publish(message);
+
+      }
+      if(dat.data_type == "odod")
+      {
+        auto message = interfaces::msg::Ododiff();
+        message.ticks_right = dat.odod.TicksRight;
+        message.ticks_left = dat.odod.TicksLeft;         
+        message.time = dat.odod.time;            
+        pub_OdoD_->publish(message);
+
+        //cout << "o" << endl;
+
+      }
+      if(dat.data_type == "odov")
+      {
+        auto message = interfaces::msg::Odovw();
+        message.linear_vel = dat.odov.linear_vel;
+        message.angular_vel = dat.odov.angular_vel;
+        message.time = dat.odov.time;
+        pub_OdoV_->publish(message);
 
       }
       if(dat.data_type == "NULL")

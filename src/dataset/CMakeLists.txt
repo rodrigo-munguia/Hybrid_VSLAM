@@ -26,7 +26,7 @@ ament_export_include_directories(include)
 set(node_plugins "")
 
 #add_executable(dataset_node src/dataset_node.cpp)
-set(SOURCE_FILES src/dataset_component.cpp src/getData.cpp ../common/Transforms/Euler_to_Ra2b.cpp)
+set(SOURCE_FILES src/dataset_component.cpp src/getData.cpp src/getDataR.cpp src/getDataL.cpp src/getDataM.cpp ../common/Transforms/Euler_to_Ra2b.cpp)
 
 add_library(dataset_component SHARED ${SOURCE_FILES})
 

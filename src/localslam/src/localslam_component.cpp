@@ -29,6 +29,8 @@
 #include "interfaces/msg/range.hpp"
 #include "interfaces/msg/gps.hpp"
 #include "interfaces/msg/spd.hpp"
+#include "interfaces/msg/ododiff.hpp"
+#include "interfaces/msg/odovw.hpp"
 #include "interfaces/msg/lslam.hpp"
 #include "interfaces/msg/kf.hpp"
 #include "interfaces/srv/l_spos_update.hpp"
@@ -67,7 +69,8 @@ EKFslam::EKFslam(const rclcpp::NodeOptions & options)
   sub_Range_ = this->create_subscription<interfaces::msg::Range>("Range_topic", 10, std::bind(&EKFslam::Range_callback, this, _1));
   sub_Frame_ = this->create_subscription<interfaces::msg::Frame>("Frame_topic", 10, std::bind(&EKFslam::Frame_callback, this, _1));        
   sub_Spd_ = this->create_subscription<interfaces::msg::Spd>("Speed_topic", 10, std::bind(&EKFslam::Speed_callback, this, _1));        
-  
+  sub_OdoD_ = this->create_subscription<interfaces::msg::Ododiff>("OdometryD_topic",10, std::bind(&EKFslam::OdoDiff_callback, this, _1)); 
+  sub_OdoV_ = this->create_subscription<interfaces::msg::Odovw>("OdometryV_topic",10, std::bind(&EKFslam::OdoVW_callback, this, _1)); 
   // Set services
   srv_ekf_run_ = this->create_service<interfaces::srv::SimpleServ>("ekf_run_service",std::bind(&EKFslam::Handle_ekf_run_service, this,_1,_2));
   srv_pos_update_ = this->create_service<interfaces::srv::LSposUpdate>("local_slam_pos_update",std::bind(&EKFslam::Handle_pos_update_service, this,_1,_2)  );

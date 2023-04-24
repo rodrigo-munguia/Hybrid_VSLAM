@@ -3,8 +3,50 @@
 
 
 
+//--------------------------------------------------------------------------
+// 
+arma::vec::fixed<3> EKF::Triangulate_sigle_3d_point(cv::Point2f &uv1d,cv::Point2f &uv2d,arma::mat::fixed<3,3> &Rn2c_1,arma::vec::fixed<3> &t_c2n_1,arma::mat::fixed<3,3> &Rn2c_2,arma::vec::fixed<3> &t_c2n_2 )
+{   
+    arma::mat::fixed<3,2> dhc_duvd;  
+    arma::vec::fixed<3> hc_1 = Inverse_projection_model(uv1d,1,false, cam_parameters,dhc_duvd); // compute inverse projection model
+    arma::vec::fixed<3> hc_2 = Inverse_projection_model(uv2d,1,false, cam_parameters,dhc_duvd); // compute inverse projection model
+    
+    arma::vec::fixed<3> hn_1 = Rn2c_1.t()*hc_1;
+    arma::vec::fixed<3> hn_2 = Rn2c_2.t()*hc_2;
+    
+    arma::vec::fixed<3> el2 = t_c2n_1 - t_c2n_2;
+    arma::vec::fixed<3> el1 = t_c2n_2 - t_c2n_1;
+
+    float hn_1_norm = arma::norm(hn_1);
+    float hn_2_norm = arma::norm(hn_2);
+    float el_norm = arma::norm(el2);
+
+    hn_1 = hn_1/hn_1_norm; // normalized vector (in the nav frame) pointing in the direction of the feature
+    hn_2 = hn_2/hn_2_norm; // normalized vector (in the nav frame) pointing in the direction of the feature
+
+    float gama =  acos( arma::as_scalar(hn_1.t()*(el1)) /el_norm   ); 
+    float beta =  acos( arma::as_scalar(hn_2.t()*(el2)) /el_norm   ); 
+    
+    float alfa = 3.141592653589793 - (beta + gama);
+    
+    float d_i = (el_norm*sin(gama))/sin(alfa);
+    
+    arma::vec::fixed<3> pt; 
+    if (d_i > 1)
+    { 
+       pt = t_c2n_2 + d_i*hn_2;
+    }
+    else
+    {
+       pt = {0,0,0};
+    }    
+    return pt;
+
+}
 
 
+
+//--------------------------------------------------------------------------------------
 void EKF::Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Points, cv::Mat &Descriptors, vector<cv::Mat> &Patches_init, vector<cv::Mat> &Patches_match)
 {
 
@@ -12,7 +54,7 @@ void EKF::Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Poin
 
     int fastThresh = 10; // Fast threshold. Usually this value is set to be in range [10,35]   
       
-    cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(1000, 1.2f, 8, 16,0,2, cv::ORB::FAST_SCORE,31, 5);
+    cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(2000, 1.2f, 8, 16,0,2, cv::ORB::FAST_SCORE,31, 5);
     detector->detect(frame->image, keyPoints);    
     
     /*
@@ -34,7 +76,7 @@ void EKF::Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Poin
 
         int numRetPoints = PAR.Images_number_candidate_points_detected; //choose exact number of return points
     
-        float tolerance = 0.1; // tolerance of the number of return points
+        float tolerance = 0.6; // tolerance of the number of return points
 
         vector<cv::KeyPoint> sscKP = Ssc(keyPointsSorted,numRetPoints,tolerance,frame->image.cols,frame->image.rows);
     //-----------------------------------    
@@ -58,6 +100,7 @@ void EKF::Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Poin
     //cv::Mat rectResults; //
     //cv::drawKeypoints(frame->image,sscKP,rectResults, cv::Scalar(94.0, 206.0, 165.0, 0.0));
     
+    /*
     for(int i = 0 ; i < Points.size(); i ++)
     {
        cv::Rect rect_init(Points[i].pt.x - hp_init, Points[i].pt.y - hp_init, hp_init*2, hp_init*2);
@@ -70,7 +113,7 @@ void EKF::Get_img_points_for_init_feats(FRAME *frame, vector<cv::KeyPoint>& Poin
        Patches_match.push_back(patch_match);
        //cv::rectangle(rectResults, rect_init, cv::Scalar(0, 255, 0));
     } 
-    
+    */
     //cv::namedWindow("patch keypoints", cv::WINDOW_AUTOSIZE);     
     //cv::imshow( "patch keypoints", rectResults);
     //int k = waitKey(1);

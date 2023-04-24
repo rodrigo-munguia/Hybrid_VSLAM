@@ -26,6 +26,9 @@ class CLOOP
            cam_parameters.alpha_c = PAR.Mono_cam_alpha_c;
 
             Close_loop = false;
+
+            travel_dis = 0;
+            last_pos = {0,0,0};
         }
         
          
@@ -41,6 +44,9 @@ class CLOOP
         arma::vec::fixed<3> Delta_kf_n;
 
         bool Close_loop;
+
+        double travel_dis;
+        arma::vec::fixed<3> last_pos;
 
         std::vector<int> Get_n_not_visually_linked_kf(int idx_kf , int idx_kf_sup_limit );
         std::vector<int> Get_n_visually_linked_kf(int idx_kf, int min_strenght);

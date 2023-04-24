@@ -29,6 +29,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Kf.msg"
   "msg/Robotstate.msg"
   "msg/Gmap.msg"
+  "msg/Ododiff.msg"
+  "msg/Odovw.msg"
   "srv/SimpleServ.srv"
   "srv/LSposUpdate.srv"
   DEPENDENCIES sensor_msgs  

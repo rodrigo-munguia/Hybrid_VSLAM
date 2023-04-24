@@ -198,7 +198,7 @@ void Gslam::CLOOP_LOOP()
       }     
 
 
-       std::this_thread::sleep_for(std::chrono::milliseconds(100)); // sleep a short period of time to save proccesor use 
+       std::this_thread::sleep_for(std::chrono::milliseconds(50)); // sleep a short period of time to save proccesor use 
     }    
 
 
