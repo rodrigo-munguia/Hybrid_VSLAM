@@ -42,31 +42,43 @@ The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See ht
 
 **Usage:**
 
-1.- Use colcon for compiling the project  (in the root project folder):  
+1.- Source the ROS 2 installation (in the root project folder):
+```
+foo@bar:~/home/Hybrid_VLSAM$ source /opt/ros/galactic/setup.bash
+```
+2.- Use colcon to build the "interfaces" package (this will be needed to do before building the other packages):
+```
+foo@bar:~/home/Hybrid_VLSAM$ colcon build --packages-select interfaces
+```
+3.- source the overlay:
+```
+foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
+```
+4.- Use colcon for compiling the all the other packages  :  
 ```
 foo@bar:~/home/Hybrid_VLSAM$ colcon build
 ```
-2.- Reassemble and extract the sample dataset included in folder /Dataset_sample:
+5.- Reassemble and extract the sample dataset included in folder /Dataset_sample:
 ```
 foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ cat dataset.tar.gz* | tar xzvf 
  ```
- 3.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
+ 6.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
  ```
  Dataset_path: /home/Hybrid_VLSAM/Dataset_sample/2023-3-27-11-47/
 ``` 
-4.-  In the root project folder open a terminal and source the overlay:
+7.-  In the root project folder open a terminal and source the overlay:
 ```
 foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
-5.- In the same terminal run the Hybrid SLAM using the launch file "launch/slam.launch.py". At this point, a graphical interface must be opened.
+8.- In the same terminal run the Hybrid SLAM using the launch file "launch/slam.launch.py". At this point, a graphical interface must be opened.
 ```
 foo@bar:~/home/Hybrid_VLSAM$ ros2 launch launch/quad_slam.launch.py
 ```
-6.- In the root project folder open a second terminal and source the overlay: 
+9.- In the root project folder open a second terminal and source the overlay: 
 ```
 foo@bar:~/home/Hybrid_VLSAM$ . install/setup.bash
 ```
-7.- Run the keyboard interface node:
+10.- Run the keyboard interface node:
 ```
 foo@bar:~/home/Hybrid_VLSAM$ ros2 run keyboard keyboard_node
 ```
@@ -78,6 +90,6 @@ At this point, the following menu must appear in the console:
 |   '-'-> zoom out '+' ->  zoom in '1'-> x-y view '2' -> x-z view  '3'->y-z view
 |   '8'-> view up '5' ->  view down '4'-> view left '6' -> view right  'c'-> clear plot
 ```
-8.- Press the key "p".
+11.- Press the key "p".
 
 *Notes on the sample dataset:* The parameters can be modified in the configuration file /config/quad_params.yaml to change the results and performance of the method. 
