@@ -28,7 +28,7 @@ The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See ht
 
 **Dependencies** (Tested in: Ubuntu 20.04)**:**
 
-1.- ROS 2 (Galactic)
+1.- ROS 2 (Galactic), https://docs.ros.org/en/galactic/index.html
 
 2.- Armadillo C++ library (tested with version 11.0.1), http://arma.sourceforge.net/ .
     Armadillo requires BLAS/OPENBLAS and LAPACK libraries installed 
