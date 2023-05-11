@@ -11,7 +11,7 @@
 #include <opencv2/viz.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include "interfaces/msg/frame.hpp"
-#include "interfaces/msg/lslamstate.hpp"
+#include "interfaces/msg/lslam.hpp"
 #include "../../common/Transforms/quat2R.hpp"
 #include "../../common/Transforms/Euler_to_Ra2b.hpp"
 
