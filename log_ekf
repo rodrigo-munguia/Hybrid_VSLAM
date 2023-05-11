@@ -1,9 +1,0 @@
-Total execution time (s): 278.766
-Total computation time (s): 112.771
-Total number of initialized feats: 6156
-Total number of deleted feats: 6057
-Total number of initialized Anchors: 479
-Total number of deleted Anchors: 429
-Mean time per frame: 0.0141762s  Std. time per frame: 0.00535951s
-Mean feats per frame: 95.3815  Std. Feats per frame: 8.00967
-Mean Anchors per frame: 47.6453  Std. Anchors per frame: 9.35153

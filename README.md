@@ -47,8 +47,7 @@ foo@bar:~/home/Hybrid_VLSAM$ colcon build
 ```
 2.- Reassemble and extract the sample dataset included in folder /Dataset_sample:
 ```
-foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ cat dataset.* > dataset.tar.bz
-foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ tar -xf dataset.tar.bz
+foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ cat dataset.tar.gz* | tar xzvf 
  ```
  3.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
  ```

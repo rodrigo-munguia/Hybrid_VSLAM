@@ -1,7 +1,0 @@
-Total number of keyframes: 213
-Total number of initialized Anchors: 53363
-Total number of deleted Anchors: 32006
-Map size (number of anchors): 21357
-Total computation time: 134.039
-Mean Anchors per step: 11320.1  Std. Anchors per step: 6821.68
-Mean Computation time per step: 0.690925  Std. Computation time per step: 0.385676
