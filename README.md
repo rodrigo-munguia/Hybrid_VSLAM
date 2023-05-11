@@ -7,7 +7,7 @@ Ros 2 implementation of the visual-based SLAM approach described in the paper:
 
 **IMPORTANT:** *Note that this software is currently under development.!!*  
 
-![](figures/hvslam_f3.png)
+![](figures/quad_exp.png)
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
@@ -51,7 +51,7 @@ foo@bar:~/home/Hybrid_VLSAM/Dataset_sample$ cat dataset.tar.gz* | tar xzvf
  ```
  3.- In a text editor open the file "params.yaml" located in the folder "config", and set the parameter "Dataset_path:" with the absolute path of the extracted dataset folder. Example:
  ```
- Dataset_path: /home/Hybrid_VLSAM/Dataset_sample/2022-1-22-16-6/
+ Dataset_path: /home/Hybrid_VLSAM/Dataset_sample/2023-3-27-11-47/
 ``` 
 4.-  In the root project folder open a terminal and source the overlay:
 ```
