@@ -80,4 +80,4 @@ At this point, the following menu must appear in the console:
 ```
 8.- Press the key "p".
 
-*Notes on the sample dataset:* The sample dataset was captured in an unstructured outdoor environment (the soil is composed mainly of dirt). Note that for this flight trajectory, the first loop is consistently closed and the second loop is randomly closed. The parameters can be modified in the configuration file /config/params.yaml to change the results and performance of the method. 
+*Notes on the sample dataset:* The parameters can be modified in the configuration file /config/quad_params.yaml to change the results and performance of the method. 
