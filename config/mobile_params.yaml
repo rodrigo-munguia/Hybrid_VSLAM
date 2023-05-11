@@ -117,7 +117,8 @@
     CL_z_update: false
     CL_xy_update_max_delta: 3.0
     CL_z_update_max_delta: 1.0
-        
+    # Activate/Deactivate statistics 
+    Stats: true      
 #--------------------------------------------------------------------------
 # Plot component parameters         
 /plot:
@@ -212,6 +213,8 @@
     CL_clo_sigma_kf_xy: 0.005
     CL_clo_sigma_kf_z: 0.005
     CL_update_z: false
+    # Activate/Deactivate statistics 
+    Stats: true  
     
     
 

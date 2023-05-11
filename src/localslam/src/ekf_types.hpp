@@ -48,4 +48,26 @@ struct CAM
 };
 */
 
+struct STORE
+{
+    // for plotting  
+
+    int n_init_feats;
+    int n_init_anchors;
+    int n_delete_feats;
+    int n_delete_anchors;
+    
+    std::pair<std::vector<double>,std::vector<double>> n_feats_per_frame;
+    std::pair<std::vector<double>,std::vector<double>> n_anchors_per_frame;
+    std::pair<std::vector<double>,std::vector<double>> time_per_frame;    
+    
+    double total_exec_time;  //  total time running the algorithm
+    double total_comp_time;  // total computation time
+
+};    
+
+
+
+
+
 #endif

@@ -92,6 +92,7 @@ EKFslam::EKFslam(const rclcpp::NodeOptions & options)
 
   re_init_sys = false;
   ekf_steps_loop_run = false;
+  get_log_flag = false;
 
  // version info.
   std::cout << cv::getBuildInformation() << std::endl;
@@ -195,6 +196,14 @@ void EKFslam::EKF_LOOP()
               }
              mutex_pos_update.unlock();
 
+             //-- check if log date is required
+             mutex_log.lock();
+               if(get_log_flag == true)
+               {
+                 get_log_flag = false;
+                 log_data(ekf.store);
+               } 
+             mutex_log.unlock(); 
 
         
         } // if ekf is initilized
@@ -464,10 +473,7 @@ void EKFslam::Handle_pos_update_service(const std::shared_ptr<interfaces::srv::L
 
 }
 
-
-
 //-----------------------------------------------------------------------------------------------------------------------------
-
 void EKFslam::Handle_ekf_run_service(const std::shared_ptr<interfaces::srv::SimpleServ::Request> request,std::shared_ptr<interfaces::srv::SimpleServ::Response> response) 
     {       
       if (request->cmd == 'r')
@@ -496,11 +502,105 @@ void EKFslam::Handle_ekf_run_service(const std::shared_ptr<interfaces::srv::Simp
 
         cout << "localslam-> request received: re-initialize ekf " << endl;  
       }
+      if (request->cmd == 'l')
+      {
+        mutex_log.lock();          
+          get_log_flag = true;
+        mutex_log.unlock();
+      }
 
 
 
       response->response = true;
     };
+
+//--------------------------------------------------------------------
+ void EKFslam::log_data(STORE &data)
+ {
+
+    cout << "----> Local EKF-SLAM stats: <----" << endl;    
+    std::printf("Total execution time: %.3f seconds.\n", data.total_exec_time);
+    std::printf("Total computation time: %.3f seconds.\n", data.total_comp_time);
+    //std::printf("Total real time: %.3f seconds.\n", total_time);
+    cout << "Total number of initialized feats: " << data.n_init_feats << endl;
+    cout << "Total number of deleted feats: " << data.n_delete_feats << endl;
+    cout << "Total number of initialized Anchors: " << data.n_init_anchors << endl;
+    cout << "Total number of deleted Anchors: " << data.n_delete_anchors << endl; 
+
+    double mean_tf,std_tf, sum_tf;
+    mean_std(data.time_per_frame.second,mean_tf,std_tf,sum_tf);
+    cout << "Mean time per frame: " << mean_tf << "s  Std. time per frame: " << std_tf << "s" << endl;
+    double mean_feats,std_feats,sum_feats;
+    mean_std(data.n_feats_per_frame.second,mean_feats,std_feats,sum_feats);
+    cout << "Mean feats per frame: " << mean_feats << "  Std. Feats per frame: " << std_feats  << endl;
+    double mean_anchors,std_anchors,sum_anchors;
+    mean_std(data.n_anchors_per_frame.second,mean_anchors,std_anchors,sum_anchors);
+    cout << "Mean Anchors per frame: " << mean_anchors << "  Std. Anchors per frame: " << std_anchors  << endl;
+
+    std::ofstream myfile("log_ekf");
+    if (myfile.is_open()) {       
+        myfile << "Total execution time (s): " << data.total_exec_time <<  endl;
+        myfile << "Total computation time (s): " << data.total_comp_time <<  endl;
+        myfile << "Total number of initialized feats: " << data.n_init_feats << endl;
+        myfile << "Total number of deleted feats: " << data.n_delete_feats << endl;
+        myfile << "Total number of initialized Anchors: " << data.n_init_anchors << endl;
+        myfile << "Total number of deleted Anchors: " << data.n_delete_anchors << endl; 
+        myfile << "Mean time per frame: " << mean_tf << "s  Std. time per frame: " << std_tf << "s" << endl;
+        myfile << "Mean feats per frame: " << mean_feats << "  Std. Feats per frame: " << std_feats  << endl;
+        myfile << "Mean Anchors per frame: " << mean_anchors << "  Std. Anchors per frame: " << std_anchors  << endl;       
+        myfile.close();
+        //std::cout << "File created or overwritten successfully.\n";
+    }
+    else {
+        std::cout << "Unable to create or open the file.\n";
+    }    
+    
+    
+    
+    log_data_to_file("log_ekf_time_per_frame",data.time_per_frame);
+    log_data_to_file("log_ekf_feats_per_frame",data.n_feats_per_frame);
+    log_data_to_file("log_ekf_anchors_per_frame",data.n_anchors_per_frame);
+
+ }
+
+ void EKFslam::log_data_to_file(string file_name,std::pair<std::vector<double>,std::vector<double>> &data)
+ {
+    std::ofstream myfile(file_name);
+    if (myfile.is_open()) {
+        
+        for (int i = 0; i < data.first.size(); i++)
+        {
+          myfile << data.first[i] << "," << data.second[i] << endl;
+        }       
+        
+        myfile.close();
+        //std::cout << "File created or overwritten successfully.\n";
+    }
+    else {
+        std::cout << "Unable to create or open the file.\n";
+    }
+
+ }
+
+ void EKFslam::mean_std(std::vector<double> &data, double &mean, double &std, double &sum)
+{
+    sum = 0;
+    for (int i = 0; i < data.size() ; i++ )
+    {     
+        sum = sum + data[i];
+    }    
+    mean = sum/data.size();
+
+    double sum_sq = 0;
+    for (int i = 0; i < data.size() ; i++ )
+    { 
+        sum_sq = sum_sq + pow(data[i] - mean,2 );
+    }
+    std = sqrt(sum_sq/data.size());
+}
+
+
+
 
 }  // namespace composition
 

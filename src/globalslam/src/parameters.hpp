@@ -71,7 +71,7 @@ struct parameters
     double CL_clo_sigma_kf_z;
     bool CL_update_z;
 
-
+    bool Stats;
 
 } ;   
 

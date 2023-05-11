@@ -46,7 +46,7 @@ void Gslam::setParameters()
    this->declare_parameter<double>("CL_clo_sigma_kf_xy",0.005);
    this->declare_parameter<double>("CL_clo_sigma_kf_z",0.005);
    this->declare_parameter<bool>("CL_update_z",true);
-
+   this->declare_parameter<bool>("Stats",false);
    
       
   
@@ -92,6 +92,7 @@ void Gslam::setParameters()
    this->get_parameter("CL_clo_sigma_kf_xy",PAR.CL_clo_sigma_kf_xy);
    this->get_parameter("CL_clo_sigma_kf_z",PAR.CL_clo_sigma_kf_z);
    this->get_parameter("CL_update_z",PAR.CL_update_z);
+   this->get_parameter("Stats",PAR.Stats);
 
   
   

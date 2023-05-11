@@ -24,7 +24,21 @@ class EKF
         EKF(parameters &par) // constructor
         {
             PAR = par;             
-            initialized = false;                         
+            initialized = false;  
+
+            // initialice store structure for log system statistics 
+            store.n_init_feats = 0;
+            store.n_init_anchors = 0;
+            store.n_delete_feats = 0;
+            store.n_delete_anchors = 0;
+            store.total_exec_time = 0;
+            store.total_comp_time = 0;
+            store.n_feats_per_frame.first.clear();
+            store.n_feats_per_frame.second.clear();
+            store.n_anchors_per_frame.first.clear();
+            store.n_anchors_per_frame.second.clear();
+            store.time_per_frame.first.clear(); 
+            store.time_per_frame.second.clear();                       
             
         }
         
@@ -84,6 +98,8 @@ class EKF
         void Visual_update_One_Point_ransac_hypotheses_e(std::vector<int> &z_li_f,std::vector<int> &z_li_a);
         void Visual_update_One_Point_ransac_e(std::vector<int> &z_lx_f,std::vector<int> &z_lx_a);
         void Visual_update_One_Point_ransac_rescue_hi_inliers_e(std::vector<int> &z_li_f,std::vector<int> &z_li_a,std::vector<int> &z_hi_f,std::vector<int> &z_hi_a );
+        
+        void Store_info(double time);
 
         double yaw_at_home;
         
@@ -92,6 +108,9 @@ class EKF
         
     
     public:
+        
+        STORE store;
+        
         void system_init(DATA &dat);
         void ekf_step(DATA &dat);       
         bool get_ekf_initialized_state();
@@ -102,6 +121,9 @@ class EKF
         bool get_RobotState(arma::vec::fixed<13> &x_r);
         void Update_pos_with_delta(arma::vec::fixed<3> delta_pos, string type);
         
+
+       
+
 
     
 };

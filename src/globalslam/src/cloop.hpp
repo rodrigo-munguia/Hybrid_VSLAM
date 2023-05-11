@@ -25,10 +25,17 @@ class CLOOP
            cam_parameters.fc[1] = PAR.Mono_cam_fc_v;
            cam_parameters.alpha_c = PAR.Mono_cam_alpha_c;
 
-            Close_loop = false;
+           Close_loop = false;
 
-            travel_dis = 0;
-            last_pos = {0,0,0};
+           travel_dis = 0;
+           n_cloop_intents = 0;
+           last_pos = {0,0,0};
+           
+           // initialice store structure for log system statistics    
+           store.time_search_per_step.first.clear();
+           store.time_search_per_step.second.clear();
+           store.cloop_stats.clear(); 
+
         }
         
          
@@ -46,6 +53,7 @@ class CLOOP
         bool Close_loop;
 
         double travel_dis;
+        int n_cloop_intents;
         arma::vec::fixed<3> last_pos;
 
         std::vector<int> Get_n_not_visually_linked_kf(int idx_kf , int idx_kf_sup_limit );
@@ -53,7 +61,7 @@ class CLOOP
        
         void Get_matches(KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches, std::vector<cv::Point2d> &image_points ,int &idx_kf_matched);
         
-        bool Get_pos_of_current_frame(arma::vec::fixed<3> &pos, KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches, std::vector<cv::Point2d> &image_points);
+        bool Get_pos_of_current_frame(arma::vec::fixed<3> &pos, KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches, std::vector<cv::Point2d> &image_points, int step);
 
         void Update_gmap(arma::vec::fixed<3> &pos, KEYFRAME &kf_cl,int &idx_kf_matched);
         
@@ -87,7 +95,7 @@ class CLOOP
         bool Get_close_loop_state();
         void Set_close_loop_state(bool state);
 
-        
+        STOREC store;
 
     
 };

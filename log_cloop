@@ -1,0 +1,12 @@
+Total search computation time: 105.099
+Mean Computation search time per step: 0.0395109  Std. Computation search time per step: 0.0531659
+-- Closing loop stats at step: 2037
+   Number of intents before CL: 82
+   XY Error correction y pose (m): 5.89499
+   Mean reprojection error (pixel): 61.0622
+   Distance traveled (m): 206.662
+-- Closing loop stats at step: 2659
+   Number of intents before CL: 75
+   XY Error correction y pose (m): 0.943016
+   Mean reprojection error (pixel): 66.5033
+   Distance traveled (m): 57.762

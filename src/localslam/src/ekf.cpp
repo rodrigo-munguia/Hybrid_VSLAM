@@ -208,13 +208,17 @@ void EKF::ekf_step(DATA &dat)
             bool prediction_done = false;
             
             if(PAR.Data_origin == "dataset")                
-                { 
+                {
+                 
                   delta_t = delta_t*PAR.x_vel_run_time;
-                } 
+                }
+            
                 
             if( delta_t > 1/(double)PAR.Max_freq_output || dat.data_type != "")
-            { 
+            {   
                 
+                
+
                 bool receiving_data;
                 if(dat.data_type != "")
                 {
@@ -234,14 +238,16 @@ void EKF::ekf_step(DATA &dat)
                     receiving_data = true;
                 }
                 
-              ct_i = std::chrono::high_resolution_clock::now();  
+             // ct_i = std::chrono::high_resolution_clock::now();  
              // cout << delta_t << endl;
      
               if(receiving_data && PAR.Prediction_model == "noise_driven")
               {               
                 prediction_euler_noise_driven(delta_t); // if data is been received, perform EKF prediction
+                total_exec_time =  total_exec_time + delta_t;
+                cout << total_exec_time << endl;
               } 
-              total_exec_time =  total_exec_time + delta_t;
+              
               prediction_done = true;
               last_time = dt_i;
             } 
@@ -304,16 +310,27 @@ void EKF::ekf_step(DATA &dat)
 
             if(dat.data_type == "frame")
             {
-              //cout << "Frame rows: " << dat.frame.image.rows << endl;
+              
+               ct_i = std::chrono::high_resolution_clock::now();  
+
                if(PAR.Visual_update)Visual_update_e(&dat.frame);
 
                auto ct_f = std::chrono::high_resolution_clock::now();
                auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(ct_f - ct_i);
                double comp_time_per_frame = elapsed.count() * 1e-9;
                
+               total_comp_time = total_comp_time + comp_time_per_frame;
               // cout << "computation time per frame(s): " << comp_time_per_frame << endl;
               // cout << "total exec time(s): " << total_exec_time << " total comp time(s): " << total_comp_time << endl;
               // cout << n_o << endl;
+              if(PAR.Stats){
+                store.time_per_frame.first.push_back(total_exec_time);
+                store.time_per_frame.second.push_back(comp_time_per_frame);                
+                store.total_exec_time = total_exec_time;
+                store.total_comp_time = total_comp_time;
+                Store_info(total_exec_time);
+              }
+
             }
 
             if(dat.data_type == "alt")
@@ -371,7 +388,7 @@ void EKF::ekf_step(DATA &dat)
                auto ct_t = std::chrono::high_resolution_clock::now();
                auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(ct_t - ct_i);
                double comp_time_per_step = elapsed.count() * 1e-9;            
-               total_comp_time = total_comp_time + comp_time_per_step;
+               //total_comp_time = total_comp_time + comp_time_per_step;
                n_o++;
               
                NewRobotState_available = true;
@@ -625,4 +642,15 @@ bool EKF::get_KeyFrameCL(KEYFRAME &KF)
     return false;
   }
 
+}
+
+//-------------------------------------------------------------------
+void EKF::Store_info(double time)
+{
+  int n_feats = FeatsDATA.size();
+  int n_anchors = AnchorsDATA.size();
+  store.n_feats_per_frame.first.push_back(time);
+  store.n_feats_per_frame.second.push_back(n_feats);
+  store.n_anchors_per_frame.first.push_back(time);
+  store.n_anchors_per_frame.second.push_back(n_anchors);
 }

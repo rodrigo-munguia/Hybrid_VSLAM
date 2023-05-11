@@ -10,7 +10,7 @@ cv::Mat_<T> to_cvmat(const arma::Mat<T> &src)
   return cv::Mat_<double>{int(src.n_cols), int(src.n_rows), const_cast<T*>(src.memptr())};
 }
 
-bool CLOOP::Get_pos_of_current_frame(arma::vec::fixed<3> &pos,KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches, std::vector<cv::Point2d> &image_points)
+bool CLOOP::Get_pos_of_current_frame(arma::vec::fixed<3> &pos,KEYFRAME &kf_cl, std::vector<int> &idx_pt_matches, std::vector<cv::Point2d> &image_points, int step)
 {
 
     vector<cv::Point3f> Points3D;
@@ -147,7 +147,9 @@ bool useExtrinsicGuess = true;   // if true the function uses the provided rvec 
       
       double mean_reprojection_error  = sum_e/n_in;
       cout << "Potential Loop: Mean reprojection error: " << mean_reprojection_error  << endl;
+      n_cloop_intents++;
       
+
       double d_xy = sqrt( pow(tvec_u.at<double>(0) - tvec.at<double>(0),2) +  pow(tvec_u.at<double>(1) - tvec.at<double>(1),2) );
 
       if (mean_reprojection_error < PAR.CL_min_mean_reprojection_error && d_xy < PAR.CL_xy_update_max_delta)
@@ -161,6 +163,17 @@ bool useExtrinsicGuess = true;   // if true the function uses the provided rvec 
         pos[0] = tvec.at<double>(0);
         pos[1] = tvec.at<double>(1);
         pos[2] = tvec.at<double>(2);
+        
+        // store statitics 
+        if(PAR.Stats){
+          CLOOP_Stat cloop_stat;
+          cloop_stat.n_loop_closing_intents = n_cloop_intents;
+          cloop_stat.reprojection_error = mean_reprojection_error;
+          cloop_stat.error_correction = d_xy;
+          cloop_stat.step = step;
+          store.cloop_stats.push_back(cloop_stat);
+        }  
+
         return true;           
       }
       else

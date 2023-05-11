@@ -116,6 +116,12 @@ void CLOOP::Pose_SLAM(arma::vec::fixed<3> &pos,std::vector<arma::vec::fixed<3>> 
         
         idx_kf_opt.push_back(i);
         delta_kf_pos.push_back(dt_kf);
+
+        if(PAR.Stats){
+          store.cloop_stats.back().error_correction = arma::norm(dt_kf);
+        }   
+
+
     }    
     
 

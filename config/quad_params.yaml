@@ -4,19 +4,20 @@
   ros__parameters:
     Dataset: bebop
     #Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2022-1-22-16-6/
-    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2021-8-4-12-54/
+    #Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2021-8-4-12-54/
+    Dataset_path: /home/rodrigo/RESEARCH/DataSets/Bebop/2023-3-27-11-47/
     # init_time, the four significative digits represent seconds, the least six represent microseconds
     init_time: 0000000000     
     run_time: 86.0
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
-    x_vel_run_time: 1.5
+    x_vel_run_time: 1.0
 #--------------------------------------------------------------------------
 # Local slam component parameters    
 /lslam:
   ros__parameters:
     Data_origin: dataset
     # check x_vel_run_time has the same value for both de Dataset and the localslam component
-    x_vel_run_time: 1.5
+    x_vel_run_time: 1.0
     Robot_state_size: 13    
     Prediction_model: noise_driven
     # Maximun frequency output of robot state in Hz. (Max_freq_output must be an integer > 10)
@@ -109,7 +110,8 @@
     CL_z_update: false
     CL_xy_update_max_delta: 6.0
     CL_z_update_max_delta: 1.0
-        
+    # Activate/Deactivate statistics 
+    Stats: true      
 #--------------------------------------------------------------------------
 # Plot component parameters         
 /plot:
@@ -150,7 +152,7 @@
     # A high value of "Init_number_candidate_points_per_kf" can cause a malloc crash
     Init_use_anms_for_select_strong_points: true
     Init_anms_tolerance: 0.3      
-    Init_number_candidate_points_per_kf: 2500
+    Init_number_candidate_points_per_kf: 2000 #2500
     Init_min_distance_to_previous_mapped_features: 1
     Init_min_depth_to_consider: .2
     # visual match
@@ -194,7 +196,7 @@
     CL_min_n_matches: 40
     # "CL_min_mean_reprojection_error" is used as treshold for the reprojection test used for validating the PnP pose.
     # The bigger de value the most permisive is the test (more loops are detected), but the computed pose can be less accurate.
-    CL_min_mean_reprojection_error: 30.0
+    CL_min_mean_reprojection_error: 70.0
     CL_xy_update_max_delta: 6.0
     # Noise
     CL_odo_sigma_kf_att: 0.0001
@@ -204,6 +206,8 @@
     CL_clo_sigma_kf_xy: 0.005
     CL_clo_sigma_kf_z: 0.005
     CL_update_z: false
+    # Activate/Deactivate statistics 
+    Stats: true  
     
     
 

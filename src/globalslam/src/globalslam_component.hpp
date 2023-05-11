@@ -21,6 +21,7 @@
 #include "interfaces/msg/kf.hpp"
 #include "interfaces/msg/gmap.hpp"
 #include "interfaces/srv/l_spos_update.hpp"
+#include "interfaces/srv/simple_serv.hpp"
 #include "globalslam_types.hpp"
 #include <mutex>
 #include "gmap.hpp"
@@ -53,6 +54,8 @@ private:
   void Kf_cl_callback(const interfaces::msg::Kf & msg) ;
   
   // declare Services
+  rclcpp::Service<interfaces::srv::SimpleServ>::SharedPtr srv_globalslam_run_;
+  void Handle_globalslam_run_service(const std::shared_ptr<interfaces::srv::SimpleServ::Request> request,std::shared_ptr<interfaces::srv::SimpleServ::Response> response);
 
   // declare clients
   rclcpp::Client<interfaces::srv::LSposUpdate>::SharedPtr client_local_slam_pos_update_;
@@ -92,10 +95,17 @@ private:
   std::mutex mutex_rx_kf_cl;
   std::mutex mutex_get_gm;
   std::mutex mutex_send_pos;
+  std::mutex mutex_log_gmap;
+  std::mutex mutex_log_cloop;
 
   bool loop_closed_flag;
+  bool gmap_get_log_flag;
+  bool cloop_get_log_flag;
 
-  
+  void log_data_g(STOREG &data);
+  void log_data_c(STOREC &data);
+  void mean_std(std::vector<double> &data, double &mean, double &std, double &sum);
+  void log_data_to_file(string file_name,std::pair<std::vector<double>,std::vector<double>> &data);
 
 
   

@@ -65,6 +65,7 @@ void GMAP::Delete_points(std::vector<std::vector<int>> &kf_vg_info)
           }
           */
           Gmap.AnchorsDATA.erase(Gmap.AnchorsDATA.begin()+i);
+          if(PAR.Stats)total_delete_anchors++;
          
           
       }

@@ -19,7 +19,7 @@ using namespace std;
                    "|   'p'-> Play/Pause  r-> Reset\n "
                    "|   '-'-> zoom out '+' ->  zoom in '1'-> x-y view '2' -> x-z view  '3'->y-z view\n"
                    "|   '8'-> view up '5' ->  view down '4'-> view left '6' -> view right  'c'-> clear plot\n"
-                   "|   '9'-> save screenshot\n"                      
+                   "|   '9'-> save screenshot 'l' -> log statistics\n"                      
                  << std::endl;
    
  }   
@@ -37,9 +37,18 @@ int main(int argc, char ** argv)
 
   std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("keyboard_dataset");
   
+  // create client services
+
   rclcpp::Client<interfaces::srv::SimpleServ>::SharedPtr client_dataset =
     node->create_client<interfaces::srv::SimpleServ>("dataset_service");
-    
+
+  rclcpp::Client<interfaces::srv::SimpleServ>::SharedPtr client_ekf_run_ =
+    node->create_client<interfaces::srv::SimpleServ>("ekf_run_service");
+  
+  rclcpp::Client<interfaces::srv::SimpleServ>::SharedPtr client_globalslam_run_ =
+    node->create_client<interfaces::srv::SimpleServ>("globalslam_run_service");
+  // --------------
+  
  auto request = std::make_shared<interfaces::srv::SimpleServ::Request>();
            request->cmd = 1;
 
@@ -126,6 +135,14 @@ while (k != 'q')
                   } else {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service dataset");
                   }                   
+            }
+            if ( k == 'l')
+            {
+              request = std::make_shared<interfaces::srv::SimpleServ::Request>();
+              request->cmd = k;
+              result = client_ekf_run_->async_send_request(request); 
+              result = client_globalslam_run_->async_send_request(request); 
+
             }
             if ( k == 45)
             {

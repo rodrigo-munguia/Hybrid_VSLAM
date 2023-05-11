@@ -29,6 +29,7 @@
 #include "interfaces/msg/kf.hpp"
 #include "interfaces/msg/robotstate.hpp"
 #include "localslam_types.hpp"
+#include "ekf_types.hpp"
 #include <mutex>
 #include "parameters.hpp"
 #include "interfaces/srv/simple_serv.hpp"
@@ -105,11 +106,13 @@ private:
   std::mutex mutex_get_state;
   std::mutex mutex_init_system;
   std::mutex mutex_pos_update;
+  std::mutex mutex_log;
   
     
   
   bool re_init_sys;
   bool new_slam_state_flag;
+  bool get_log_flag;
   
   POS_UPDATE pos_update; 
   
@@ -121,6 +124,11 @@ private:
   void pub_kf_cl(KEYFRAME &KF);
   void pub_lslam_Data(LOCALSLAM_DATA &lslam_data);
   void pub_robot_state(arma::vec::fixed<13> &x_r);
+
+
+  void log_data(STORE &data);
+  void mean_std(std::vector<double> &data, double &mean, double &std, double &sum);
+  void log_data_to_file(string file_name,std::pair<std::vector<double>,std::vector<double>> &data);
 
   protected:
   //void on_timer_pub_lslam_data();

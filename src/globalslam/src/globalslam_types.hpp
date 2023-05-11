@@ -61,6 +61,34 @@ struct GLOBAL_MAP
     
 };
 
+struct STOREG
+{      
+    int n_init_anchors;    
+    int n_delete_anchors;
+    int n_kf;       
+    std::pair<std::vector<double>,std::vector<double>> n_anchors_per_step;
+    std::pair<std::vector<double>,std::vector<double>> time_per_step;
+    std::pair<std::vector<double>,std::vector<double>> n_kf_per_step;      
+    double total_comp_time;  // total computation time
+}; 
+
+struct CLOOP_Stat
+{   
+    double step;
+    double reprojection_error;
+    double error_correction;
+    double distance_traveled; // distance traveled from the initial position / last closing loop point
+    int n_loop_closing_intents; // number of intents (loop detections) before close loop is accepted
+};
+
+struct STOREC
+{
+    std::vector<CLOOP_Stat> cloop_stats;
+    std::pair<std::vector<double>,std::vector<double>> time_search_per_step;
+    double total_comp_time;  // total computation time
+
+};    
+
 
 
 

@@ -39,13 +39,16 @@ arma::vec::fixed<3>  GMAP::Get_delta_pos()
 // Rodrigo M. 20222
 void GMAP::Update()
 {
-    
+    static double total_comp_time = 0;
+    static double step = 0;
+    step++;
     //------------------------------------------------------
     // After a close loop perform a full update of the visibility graph
     
     
     //-------------------------------------------------------
     // Grow the global map: Add new Keyframes and new Map Point
+    auto ct_i = std::chrono::high_resolution_clock::now();  
     bool new_kf = false;
     for(int k = 0; k < Kf_buffer.size() ; k++ )
     {   
@@ -120,6 +123,27 @@ void GMAP::Update()
            */     
            int q = 10;
         }
+
+     auto ct_f = std::chrono::high_resolution_clock::now();
+     auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(ct_f - ct_i);
+     double comp_time_per_step = elapsed.count() * 1e-9;   
+     total_comp_time = total_comp_time + comp_time_per_step;
+
+     // store statitics 
+     if(PAR.Stats){
+                cout << "GSLAM step:" << step << endl;
+                store.n_kf = Gmap.KeyFDATA.size();
+                store.n_init_anchors = total_init_anchors;
+                store.n_delete_anchors = total_delete_anchors;
+                store.total_comp_time = total_comp_time;
+                store.time_per_step.first.push_back(step);
+                store.time_per_step.second.push_back(comp_time_per_step);
+                store.n_anchors_per_step.first.push_back(step);
+                store.n_anchors_per_step.second.push_back(total_init_anchors-total_delete_anchors);
+                store.n_kf_per_step.first.push_back(step);
+                store.n_kf_per_step.second.push_back(Gmap.KeyFDATA.size());                
+                
+      }   
 
 
 

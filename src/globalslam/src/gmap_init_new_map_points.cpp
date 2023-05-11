@@ -239,7 +239,8 @@ std::vector<int64> GMAP::Init_new_map_points()
             // The reference (fixed) frame is the first (old) frame [Gmap.KeyFDATA.size()-2]
             arma::mat::fixed<3,4> RT2; //  RT2 =  [R|t] = [I|0]    
             RT2(arma::span(0,2),arma::span(0,2)) = arma::eye(3,3);
-            RT2.col(3) = {0,0,0};  
+            //RT2.col(3) = {0,0,0};
+            RT2.col(3) =  arma::vec({0,0,0});   
             arma::mat::fixed<3,4> Pm_2a = KK*RT2;    // Kf_2 Projection matrix (armadillo format)
             arma::mat Pm_2a_t = Pm_2a.t(); // for converting to OpenCV mat    
             cv::Mat Pm2 = to_cvmat(Pm_2a_t); // Kf_2 Projection matrix (OpenCv format)
@@ -312,6 +313,7 @@ std::vector<int64> GMAP::Init_new_map_points()
                         Anchor.n_kf_matched = 2;
                         Anchor.n_tries_matchs = 0;                           
                         Gmap.AnchorsDATA.push_back(Anchor);
+                        if(PAR.Stats)total_init_anchors++;
                         //cout << "x"; 
                         int64 idx_anchor = Gmap.AnchorsDATA.size()-1;
 
@@ -351,6 +353,7 @@ std::vector<int64> GMAP::Init_new_map_points()
             Anchor.n_kf_matched = 2;  
 
             Gmap.AnchorsDATA.push_back(Anchor);
+            if(PAR.Stats)total_init_anchors++;
 
             int64 idx_anchor = Gmap.AnchorsDATA.size()-1;
 

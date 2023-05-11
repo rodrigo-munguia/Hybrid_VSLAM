@@ -136,6 +136,8 @@ struct parameters
     double CL_xy_update_max_delta;
     double CL_z_update_max_delta;
 
+    bool Stats;
+
 } ;   
 
 

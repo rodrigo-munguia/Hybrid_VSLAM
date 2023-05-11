@@ -23,11 +23,25 @@ class GMAP
            cam_parameters.cc[1] = PAR.Mono_cam_cc_v;
            cam_parameters.fc[0] = PAR.Mono_cam_fc_u;
            cam_parameters.fc[1] = PAR.Mono_cam_fc_v;
-           cam_parameters.alpha_c = PAR.Mono_cam_alpha_c;
-
-            
+           cam_parameters.alpha_c = PAR.Mono_cam_alpha_c;           
            
-            Gmap.idx_ref_pose_slam = 0;
+           Gmap.idx_ref_pose_slam = 0;
+           
+           total_init_anchors = 0;
+           total_delete_anchors = 0;
+
+           // initialice store structure for log system statistics            
+            store.n_init_anchors = 0;            
+            store.n_delete_anchors = 0;            
+            store.total_comp_time = 0;            
+            store.n_anchors_per_step.first.clear();
+            store.n_anchors_per_step.second.clear();
+            store.time_per_step.first.clear(); 
+            store.time_per_step.second.clear(); 
+            store.n_kf_per_step.first.clear();
+            store.n_kf_per_step.second.clear(); 
+
+
         }
         
          
@@ -69,6 +83,8 @@ class GMAP
         std::vector<int> Get_n_oldest_visually_linked_kf(int idx_kf, int n_oldest, int min_v_strength ) ;      
         void  Check_visibiliy_graph(int &idx_direct_link, int &idx_indirect_link );
 
+        double total_init_anchors;
+        double total_delete_anchors;     
     
     public:
         
@@ -80,6 +96,8 @@ class GMAP
         void Set_GlobalMap(GLOBAL_MAP &Gmap_c);
 
         arma::vec::fixed<3>  Get_delta_pos();
+
+        STOREG store;
 
     
 };

@@ -90,7 +90,7 @@ void EKFslam::setParameters()
    this->declare_parameter<bool>("CL_z_update",true);
    this->declare_parameter<double>("CL_xy_update_max_delta",5.0);
    this->declare_parameter<double>("CL_z_update_max_delta",1.0);
-   
+   this->declare_parameter<bool>("Stats",false);
       
   
    // Set parameter struct
@@ -182,7 +182,7 @@ void EKFslam::setParameters()
    this->get_parameter("CL_z_update",PAR.CL_z_update);
    this->get_parameter("CL_xy_update_max_delta",PAR.CL_xy_update_max_delta);
    this->get_parameter("CL_z_update_max_delta",PAR.CL_z_update_max_delta);
-
+   this->get_parameter("Stats",PAR.Stats);
        
 
 }

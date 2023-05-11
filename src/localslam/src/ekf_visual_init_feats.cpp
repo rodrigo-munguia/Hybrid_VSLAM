@@ -185,6 +185,8 @@ static arma::vec::fixed<3> t_c2n_old;
 
                      FeatsDATA.push_back(feat);
 
+                     if(PAR.Stats)store.n_init_feats++;
+
                   }    
 
                   int qq = 10;
@@ -370,6 +372,8 @@ void EKF::Visual_update_e_init_feat_wr(FRAME *frame)
       feat.CameraState = x.subvec(7,9);
 
       FeatsDATA.push_back(feat); 
+
+      if(PAR.Stats)store.n_init_feats++;
       
      }// for (unsigned int i =0 ; i< Points.size(); i++)    
 
@@ -420,7 +424,8 @@ void EKF::Visual_update_e_init_anchors()
                    
                 Delete_i_feat_(i);
                 i--;
-             
+
+                if(PAR.Stats)store.n_init_anchors++;  
                 
             }               
 

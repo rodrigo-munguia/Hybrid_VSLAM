@@ -24,6 +24,7 @@
 using namespace std;
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace globalslam
 {
@@ -43,7 +44,7 @@ Gslam::Gslam(const rclcpp::NodeOptions & options)
   sub_Kf_ = this->create_subscription<interfaces::msg::Kf>("Kf_topic", 10, std::bind(&Gslam::Kf_callback, this, _1));
   sub_Kf_cl_ = this->create_subscription<interfaces::msg::Kf>("Kf_cl_topic", 10, std::bind(&Gslam::Kf_cl_callback, this, _1));  
   // Set services
-  
+  srv_globalslam_run_ = this->create_service<interfaces::srv::SimpleServ>("globalslam_run_service",std::bind(&Gslam::Handle_globalslam_run_service, this,_1,_2));
   // Set clients
   client_local_slam_pos_update_ = this->create_client<interfaces::srv::LSposUpdate>("local_slam_pos_update");
   
@@ -61,6 +62,8 @@ Gslam::Gslam(const rclcpp::NodeOptions & options)
   gmap_updated = false;
   new_kf_cl = false;
   loop_closed_flag = false;
+  gmap_get_log_flag = false;
+  cloop_get_log_flag = false;
   
 }
 //--------------------------------------------------------------------------
@@ -113,9 +116,7 @@ void Gslam::GMAP_LOOP()
         if(new_kf == true)
         { 
           // if there are some new Keyframes update the global map
-          gmap.Update();
-          
-         
+          gmap.Update();        
 
           mutex_get_gm.lock();
             if(loop_closed_flag == false) // for synchronizing global map update after a close loop
@@ -135,9 +136,19 @@ void Gslam::GMAP_LOOP()
               mutex_send_pos.lock();
                 Send_local_slam_pos_update(delta_pos,"bundle_adjustment");
               mutex_send_pos.unlock();
-            }     
+            }
+              
 
         }
+
+        //-- check if log date is required
+             mutex_log_gmap.lock();
+               if(gmap_get_log_flag == true)
+               {
+                 gmap_get_log_flag = false;
+                 log_data_g(gmap.store);
+               } 
+             mutex_log_gmap.unlock();   
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100)); // sleep a short period of time to save proccesor use
     }  
@@ -153,8 +164,6 @@ void Gslam::CLOOP_LOOP()
    
    CLOOP cloop(PAR); // create GMAP object  
    cout << "-> Close-loop thread running... " << endl; 
-
-
 
   while(cloop_thread_loop_run == true)  // thread main loop
     {   
@@ -196,6 +205,15 @@ void Gslam::CLOOP_LOOP()
           }
           //----------------------------------------
       }     
+
+      //-- check if log date is required
+             mutex_log_cloop.lock();
+               if(gmap_get_log_flag == true)
+               {
+                 cloop_get_log_flag = false;
+                 log_data_c(cloop.store);
+               } 
+             mutex_log_cloop.unlock();  
 
 
        std::this_thread::sleep_for(std::chrono::milliseconds(50)); // sleep a short period of time to save proccesor use 
@@ -396,9 +414,153 @@ void Gslam::Kf_callback(const interfaces::msg::Kf & msg) const
 
   }  
 
+void Gslam::Handle_globalslam_run_service(const std::shared_ptr<interfaces::srv::SimpleServ::Request> request,std::shared_ptr<interfaces::srv::SimpleServ::Response> response) 
+    {       
+      
+      if (request->cmd == 'l')
+      {
+        mutex_log_gmap.lock();          
+          gmap_get_log_flag = true;
+        mutex_log_gmap.unlock();
+
+        mutex_log_cloop.lock();
+          cloop_get_log_flag = true;
+        mutex_log_cloop.unlock();    
+        
+        //cout << "xxxxxxxxxxxx" << endl;
+
+      }
+
+      response->response = true;
+    };
+
+//--------------------------------------------------------------------
+
+ //--------------------------------------------------------------------
+ void Gslam::log_data_g(STOREG &data)
+ {
+    cout << "----> Global Map stats: <----" << endl;  
+    cout << "Total number of keyframes: " << data.n_kf << endl;
+    cout << "Total number of initialized Anchors: " << data.n_init_anchors << endl;
+    cout << "Total number of deleted Anchors: " << data.n_delete_anchors << endl;
+    cout << "Map size (number of anchors): " << data.n_init_anchors - data.n_delete_anchors << endl;
+    cout << "Total computation time: " << data.total_comp_time << endl;
+
+    double mean_anchors,std_anchors,sum_anchors;
+    mean_std(data.n_anchors_per_step.second,mean_anchors,std_anchors,sum_anchors);
+    cout << "Mean Anchors per step: " << mean_anchors << "  Std. Anchors per step: " << std_anchors  << endl;
+    
+    double mean_time,std_time,sum_time;
+    mean_std(data.time_per_step.second,mean_time,std_time,sum_time);
+    cout << "Mean Computation time per step: " << mean_time << "  Std. Computation time per frame: " << std_time  << endl;
+
+    std::ofstream myfile("log_gmap");
+    if (myfile.is_open()) {       
+        myfile << "Total number of keyframes: " << data.n_kf << endl;
+        myfile << "Total number of initialized Anchors: " << data.n_init_anchors << endl;
+        myfile << "Total number of deleted Anchors: " << data.n_delete_anchors << endl;
+        myfile << "Map size (number of anchors): " << data.n_init_anchors - data.n_delete_anchors << endl;
+        myfile << "Total computation time: " << data.total_comp_time << endl;
+        myfile << "Mean Anchors per step: " << mean_anchors << "  Std. Anchors per step: " << std_anchors  << endl;
+        myfile << "Mean Computation time per step: " << mean_time << "  Std. Computation time per step: " << std_time  << endl;       
+        myfile.close();
+        //std::cout << "File created or overwritten successfully.\n";
+    }
+    else {
+        std::cout << "Unable to create or open the file.\n";
+    }          
+    //double mean_kf,std_kf,sum_kf;
+    //mean_std(data.n_kf_per_step.second,mean_time,std_time,sum_time);
+    //cout << "Mean Anchors per frame: " << mean_anchors << "  Std. Anchors per frame: " << std_anchors  << endl;
+         
+    log_data_to_file("log_gmap_anchors_per_step",data.n_anchors_per_step);
+    log_data_to_file("log_gmap_time_per_step",data.time_per_step);
+    log_data_to_file("log_gmap_kf_per_step",data.n_kf_per_step);
+
+ }
+ //--------------------------------------------------------------------
+ void Gslam::log_data_c(STOREC &data)
+ {
+    cout << "----> Closing loop stats: <----" << endl;
+    cout << "Total computation time: " << data.total_comp_time << endl;
+
+    double mean_time,std_time,sum_time;
+    mean_std(data.time_search_per_step.second,mean_time,std_time,sum_time);
+    cout << "Mean Computation time per step: " << mean_time << "  Std. Computation time per step: " << std_time  << endl;
+
+    for (int i = 0 ; i < data.cloop_stats.size();i++)
+    {
+      cout << "-- Closing loop stats at step: " << data.cloop_stats[i].step << endl;
+      cout << "   Number of intents before CL: " << data.cloop_stats[i].n_loop_closing_intents << endl;
+      cout << "   XY Error correction y pose (m): " << data.cloop_stats[i].error_correction << endl;
+      cout << "   Mean reprojection error (pixel): " << data.cloop_stats[i].reprojection_error << endl;
+      cout << "   Distance traveled (m): " << data.cloop_stats[i].distance_traveled << endl;
+    }
+
+    std::ofstream myfile("log_cloop");
+    if (myfile.is_open()) {       
+        myfile << "Total search computation time: " << data.total_comp_time << endl;
+        myfile << "Mean Computation search time per step: " << mean_time << "  Std. Computation search time per step: " << std_time  << endl;
+        for (int i = 0 ; i < data.cloop_stats.size();i++)
+        {
+          myfile << "-- Closing loop stats at step: " << data.cloop_stats[i].step << endl;
+          myfile << "   Number of intents before CL: " << data.cloop_stats[i].n_loop_closing_intents << endl;
+          myfile << "   XY Error correction y pose (m): " << data.cloop_stats[i].error_correction << endl;
+          myfile << "   Mean reprojection error (pixel): " << data.cloop_stats[i].reprojection_error << endl;
+          myfile << "   Distance traveled (m): " << data.cloop_stats[i].distance_traveled << endl;
+        }        
+        myfile.close();
+        //std::cout << "File created or overwritten successfully.\n";
+    }
+    else {
+        std::cout << "Unable to create or open the file.\n";
+    }
+
+    log_data_to_file("log_cloop_time_per_step",data.time_search_per_step);
+
+
+ }
+
+ //-----------------------------------------------------------------------
 
 
 
+ void Gslam::log_data_to_file(string file_name,std::pair<std::vector<double>,std::vector<double>> &data)
+ {
+    std::ofstream myfile(file_name);
+    if (myfile.is_open()) {
+        
+        for (int i = 0; i < data.first.size(); i++)
+        {
+          myfile << data.first[i] << "," << data.second[i] << endl;
+        }       
+        
+        myfile.close();
+        //std::cout << "File created or overwritten successfully.\n";
+    }
+    else {
+        std::cout << "Unable to create or open the file.\n";
+    }
+
+ }
+
+void Gslam::mean_std(std::vector<double> &data, double &mean, double &std, double &sum)
+{
+    sum = 0;
+    for (int i = 0; i < data.size() ; i++ )
+    {     
+        sum = sum + data[i];
+    }    
+    mean = sum/data.size();
+
+    double sum_sq = 0;
+    for (int i = 0; i < data.size() ; i++ )
+    { 
+        sum_sq = sum_sq + pow(data[i] - mean,2 );
+    }
+    std = sqrt(sum_sq/data.size());
+}
+  
 
 
 //-------------------------------------------------------------

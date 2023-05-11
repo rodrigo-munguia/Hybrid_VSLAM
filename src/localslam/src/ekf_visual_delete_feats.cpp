@@ -8,7 +8,9 @@
 void delete_i_anchor_(int idx, std::vector<FEAT> & AnchorsDATA)
 {
     // remove anchor from table
-    AnchorsDATA.erase(AnchorsDATA.begin()+idx);    
+    AnchorsDATA.erase(AnchorsDATA.begin()+idx);
+
+        
 }
 
 
@@ -32,7 +34,8 @@ void EKF::Delete_i_feat_(int idx)
         FeatsDATA[j].idx_i_state = FeatsDATA[j].idx_i_state - 3;
         FeatsDATA[j].idx_f_state = FeatsDATA[j].idx_f_state - 3; 
     }
-
+    
+    if(PAR.Stats)store.n_delete_feats++;
 
 }
 
@@ -132,7 +135,10 @@ void EKF::Visual_delete_feats()
         for(int i = 0; i < n_old_anchors_to_del; i++)
         {
             int idx_anchor_to_del = AN[i].feat_idx;
+            
             delete_i_anchor_(idx_anchor_to_del,  AnchorsDATA);
+            if(PAR.Stats)store.n_delete_anchors++;    
+
             for(int j = i; j < n_old_anchors_to_del; j++)
             {
                 if(AN[j].feat_idx > idx_anchor_to_del)AN[j].feat_idx--;
