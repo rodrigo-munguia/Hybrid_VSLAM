@@ -8,6 +8,7 @@ Ros 2 implementation of the visual-based SLAM approach described in the paper:
 **IMPORTANT:** *Note that this software is currently under development.!!*  
 
 ![](figures/quad_exp.png)
+![](figures/quad_exp_2.png)
 
 The Hybrid VSLAM is composed of the following ROS 2 components and nodes (See https://docs.ros.org/en/galactic/Concepts/About-Composition.html):
 
