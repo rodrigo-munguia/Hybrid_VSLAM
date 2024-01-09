@@ -1,11 +1,15 @@
 
 # Hybrid VSLAM
 
-Ros 2 implementation of the visual-based SLAM approach described in the paper:
+Ros 2 implementation of the visual-based SLAM approach described in papers:
 
-"Monocular-based SLAM for Mobile Robots: Filtering-Optimization Hybrid Approach" 
+Monocular-Based SLAM for Mobile Robots: Filtering-Optimization Hybrid Approach,
+R Munguia, JC Trujillo, G Obregón-Pulido, CI Aldana,
+Journal of Intelligent & Robotic Systems 109 (3), 53. 
 
-**IMPORTANT:** *Note that this software is currently under development.!!*  
+A Hybrid Visual-Based SLAM Architecture: Local Filter-Based SLAM with KeyFrame-Based Global Mapping,
+R Munguia, JC Trujillo, E Guerra, A Graum
+Sensors 22 (1), 210.
 
 ![](figures/quad_exp.png)
 ![](figures/quad_exp_2.png)
